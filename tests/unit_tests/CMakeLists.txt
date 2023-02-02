@@ -1,0 +1,14 @@
+aux_source_directory(./src SRC_LIST)
+
+add_executable(unit_tests ${SRC_LIST})
+
+target_link_libraries(unit_tests
+                      PRIVATE ${GTEST_LIBRARIES})
+
+target_include_directories(unit_tests
+                           PRIVATE ${INCLUDE_DIR})
+
+install(TARGETS unit_tests
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+gtest_discover_tests(unit_tests)
