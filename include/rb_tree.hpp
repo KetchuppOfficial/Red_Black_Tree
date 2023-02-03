@@ -223,7 +223,7 @@ class RB_Tree final
 {
     using node_ptr_t = RB_Node<Key_T> *;
 
-    node_ptr_t top_ = nullptr;
+    node_ptr_t root_ = nullptr;
     node_ptr_t leftmost_ = nullptr;
     node_ptr_t rightmost_ = nullptr;
 
@@ -241,6 +241,48 @@ public:
     auto end () { return iterator{nullptr}; }
     auto end () const { return const_iterator{nullptr}; }
     auto cend () const { return const_iterator{nullptr}; } 
+
+private:
+
+    void left_rotate (node_ptr_t l_node)
+    {
+        auto r_node = l_node->right;
+
+        l_node->right_ = r_node->left_;
+        if (r_node->left_)
+            r_node->left_->parent_ = l_node;
+
+        r_node->parent_ = l_node->parent_;
+        if (l_node->parent_)
+            root_ = r_node;
+        else if (l_node == l_node->parent_->left_)
+            l_node->parent_->left_ = r_node;
+        else
+            l_node->parent_->right_ = r_node;
+
+        r_node->left_ = l_node;
+        l_node->parent_ = r_node;
+    }
+
+    void right_rotate (node_ptr_t r_node)
+    {
+        auto l_node = r_node->left_;
+
+        r_node->left_ = l_node->right_;
+        if (l_node->right_)
+            l_node->right->parent_ = r_node;
+
+        l_node->parent_ = r_node->parent_;
+        if (r_node->parent_)
+            root_ = l_node;
+        else if (r_node == r_node->parent_->left_)
+            r_node->parent_->left_ = l_node;
+        else
+            r_node->parent_->right_ = l_node;
+
+        l_node->right_ = r_node;
+        r_node->parent_ = l_node;
+    }
 };
 
 } // namespace yLab
