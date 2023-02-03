@@ -7,51 +7,43 @@
 namespace yLab
 {
 
-enum class RB_Color
-{
-    red,
-    black
-};
-
 template <typename Key_T>
-class RB_Node final
+struct Search_Node
 {  
-    RB_Node *parent_ = nullptr;
-    RB_Node *left_   = nullptr;
-    RB_Node *right_  = nullptr;
+    Search_Node *parent_ = nullptr;
+    Search_Node *left_   = nullptr;
+    Search_Node *right_  = nullptr;
 
-    RB_Color color_;
+protected:
 
     Key_T key_;
 
 public:
 
-    RB_Node (Key_T key, RB_Color color) : key_{key}, color_{color} {}
+    Search_Node (Key_T key) : key_{key} {}
 
-    RB_Node (const RB_Node &rhs) = delete;
-    RB_Node &operator= (const RB_Node &rhs) = delete;
+    Search_Node (const Search_Node &rhs) = delete;
+    Search_Node &operator= (const Search_Node &rhs) = delete;
 
-    RB_Node (RB_Node &&rhs) noexcept
-            : parent_{std::exchange (rhs.parent_, nullptr)},
-              left_  {std::exchange (rhs.left_, nullptr)},
-              right_ {std::exchange (rhs.right_, nullptr)},
-              color_ {std::move (rhs.color_)},
-              key_   {std::move (rhs.key_)} {}
+    Search_Node (Search_Node &&rhs) noexcept
+                : parent_{std::exchange (rhs.parent_, nullptr)},
+                  left_  {std::exchange (rhs.left_, nullptr)},
+                  right_ {std::exchange (rhs.right_, nullptr)},
+                  key_   {std::move (rhs.key_)} {}
             
-    RB_Node &operator= (RB_Node &&rhs) noexcept
+    Search_Node &operator= (Search_Node &&rhs) noexcept
     {
         std::swap (parent_, rhs.parent_);
         std::swap (left_, rhs.left_);
         std::swap (right_, rhs.right_);
-        std::swap (color_, rhs.color_);
         std::swap (key_, rhs.key_);
 
         return *this;
     }
 
-    ~RB_Node () = default;
+    virtual ~Search_Node () = default;
 
-    RB_Node *minimum () const noexcept
+    Search_Node *minimum () const noexcept
     {
         auto min = this;
         while (min->left_)
@@ -60,7 +52,7 @@ public:
         return min;
     }
 
-    RB_Node *maximum () const noexcept
+    Search_Node *maximum () const noexcept
     {
         auto max = this;
         while (max->right_)
@@ -69,7 +61,7 @@ public:
         return max;
     }
 
-    RB_Node *successor () const noexcept
+    Search_Node *successor () const noexcept
     {
         auto curr = this;
         if (curr->right_)
@@ -85,7 +77,7 @@ public:
         return parent;
     }
 
-    RB_Node *predecessor () const noexcept
+    Search_Node *predecessor () const noexcept
     {
         auto curr = this;
         if (curr->left_)
@@ -103,9 +95,10 @@ public:
 };
 
 template <typename Key_T>
-class RB_Iterator final
+class Search_Iterator final
 {
-    using node_ptr_t = RB_Node<Key_T> *;
+    using node_ptr_t = Search_Node<Key_T> *;
+    using self_t = Search_Iterator;
     
     node_ptr_t *node_;
 
@@ -117,45 +110,46 @@ public:
     using reference = Key_T&;
     using pointer = Key_T*;
 
-    RB_Iterator () = default;
-    RB_Iterator (node_ptr_t node) : node_{node} {}
+    Search_Iterator () = default;
+    Search_Iterator (node_ptr_t node) : node_{node} {}
 
     reference operator* () const { return *node_; }
     pointer operator-> () const { return node_; }
 
-    RB_Iterator &operator++ ()
+    self_t &operator++ ()
     {
         node_ = node_->successor();
         return *this;
     }
     
-    RB_Iterator operator++ (int)
+    self_t operator++ (int)
     {
         auto tmp = *this;
         ++tmp;
         return tmp;
     }
 
-    RB_Iterator &operator-- ()
+    self_t &operator-- ()
     {
         node_ = node_->predecessor();
         return *this;
     }
 
-    RB_Iterator operator-- (int)
+    self_t operator-- (int)
     {
         auto tmp = *this;
         --tmp;
         return tmp;
     }
 
-    bool operator== (const RB_Iterator &rhs) const { return node_ == rhs.node_; }
+    bool operator== (const self_t &rhs) const { return node_ == rhs.node_; }
 };
 
 template <typename Key_T>
-class const_RB_Iterator final
+class const_Search_Iterator final
 {
-    using node_ptr_t = const RB_Node<Key_T> *;
+    using node_ptr_t = const Search_Node<Key_T> *;
+    using self_t = const_Search_Iterator;
     
     node_ptr_t *node_;
 
@@ -167,39 +161,61 @@ public:
     using reference = const Key_T&;
     using pointer = const Key_T*;
 
-    const_RB_Iterator () = default;
-    const_RB_Iterator (node_ptr_t node) : node_{node} {}
+    const_Search_Iterator () = default;
+    const_Search_Iterator (node_ptr_t node) : node_{node} {}
 
     reference operator* () const { return *node_; }
     pointer operator-> () const { return node_; }
 
-    const_RB_Iterator &operator++ ()
+    self_t &operator++ ()
     {
         node_ = node_->successor();
         return *this;
     }
     
-    const_RB_Iterator operator++ (int)
+    self_t operator++ (int)
     {
         auto tmp = *this;
         ++tmp;
         return tmp;
     }
 
-    const_RB_Iterator &operator-- ()
+    self_t &operator-- ()
     {
         node_ = node_->predecessor();
         return *this;
     }
 
-    const_RB_Iterator operator-- (int)
+    self_t operator-- (int)
     {
         auto tmp = *this;
         --tmp;
         return tmp;
     }
 
-    bool operator== (const const_RB_Iterator &rhs) const { return node_ == rhs.node_; }
+    bool operator== (const self_t &rhs) const { return node_ == rhs.node_; }
+};
+
+enum class RB_Color
+{
+    red,
+    black
+};
+
+template <typename Key_T>
+class RB_Node final : public Search_Node<Key_T>
+{
+    RB_Color color_;
+
+public:
+
+    RB_Node (Key_T key, RB_Color color) : Search_Node<Key_T>{key}, color_{color} {}
+
+    RB_Node (const RB_Node &rhs) = delete;
+    RB_Node &operator= (const RB_Node &rhs) = delete;
+
+    RB_Node (RB_Node &&rhs) = default;
+    RB_Node &operator= (RB_Node &&rhs) = default;
 };
 
 template <typename Key_T>
@@ -215,16 +231,16 @@ public:
 
     RB_Tree () = default;
 
-    using iterator = RB_Iterator<Key_T>;
-    using const_iterator = const_RB_Iterator<Key_T>;
+    using iterator = Search_Iterator<Key_T>;
+    using const_iterator = const_Search_Iterator<Key_T>;
 
     auto begin () { return iterator{leftmost_}; }
     auto begin () const { return const_iterator{leftmost_}; }
     auto cbegin () const { return const_iterator{leftmost_}; } 
 
-    auto end () { return iterator{rightmost_}; }
-    auto end () const { return const_iterator{rightmost_}; }
-    auto cend () const { return const_iterator{rightmost_}; } 
+    auto end () { return iterator{nullptr}; }
+    auto end () const { return const_iterator{nullptr}; }
+    auto cend () const { return const_iterator{nullptr}; } 
 };
 
 } // namespace yLab
