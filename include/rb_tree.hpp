@@ -4,11 +4,14 @@
 #include <utility>
 #include <iterator>
 #include <type_traits>
+#include <cassert>
+#include <tuple>
 
 namespace yLab
 {
 
-template <typename Ptr_T> requires std::is_pointer_v<Ptr_T>
+template <typename Ptr_T>
+requires std::is_pointer_v<Ptr_T>
 class End_Node
 {
     using self = End_Node<Ptr_T>;
@@ -58,7 +61,7 @@ private:
 
 public:
 
-    RB_Node (Key_T key, RB_Color color) : base_{}, key_{key}, color_{color} {}
+    RB_Node (Key_T key, RB_Color color) : base_{}, color_{color}, key_{key} {}
 
     RB_Node (const self &rhs) = delete;
     RB_Node &operator= (const self &rhs) = delete;
@@ -67,8 +70,8 @@ public:
               : base_ {std::move (rhs)},
                 parent_{std::exchange (rhs.parent_, nullptr)},
                 right_ {std::exchange (rhs.right_,  nullptr)},
-                key_   {std::exchange (rhs.key_, Key_T{})},
-                color_ {std::move (rhs.color_)} {}
+                color_ {std::move (rhs.color_)},
+                key_   {std::exchange (rhs.key_, Key_T{})} {}
             
     RB_Node &operator= (self &&rhs) noexcept
     {
@@ -90,12 +93,16 @@ namespace details
 template<typename Key_T>
 bool is_left_child (RB_Node<Key_T> *node) noexcept
 {
+    assert (node && node->parent_);
+    
     return node == node->parent_->left_;
 }
 
 template<typename Key_T>
 auto minimum (RB_Node<Key_T> *node) noexcept
 {
+    assert (node);
+    
     while (node->left_)
         node = node->left_;
 
@@ -105,6 +112,8 @@ auto minimum (RB_Node<Key_T> *node) noexcept
 template<typename Key_T>
 auto maximum (RB_Node<Key_T> *node) noexcept
 {
+    assert (node);
+    
     while (node->right_)
         node = node->right_;
 
@@ -114,6 +123,8 @@ auto maximum (RB_Node<Key_T> *node) noexcept
 template<typename Key_T>
 auto successor (RB_Node<Key_T> *node) noexcept
 {
+    assert (node);
+    
     if (node->right_)
         return minimum (node->right_);
 
@@ -128,6 +139,8 @@ auto successor (RB_Node<Key_T> *node) noexcept
 template<typename Key_T>
 auto predecessor (RB_Node<Key_T> *node) noexcept
 {
+    assert (node);
+    
     if (node->left_)
         return maximum (node->left_);
 
@@ -138,10 +151,64 @@ auto predecessor (RB_Node<Key_T> *node) noexcept
     return node->parent_;
 }
 
+template <typename Key_T>
+auto find (RB_Node<Key_T> *node, const Key_T &key)
+{
+    assert (node);
+    
+    while (node && key != node->key())
+        node = (key < node->key()) ? node->left_ : node->right_;
+
+    return node;
+}
+
+enum class Child_T
+{
+    left,
+    right,
+    no_matter
+};
+
+// (parent == nullptr) ==> (key == root().key())
+// (node != nullptr) ==> (parent != nullptr)
+template <typename Key_T>
+auto find_v2 (RB_Node<Key_T> *node, const Key_T &key)
+{
+    using node_ptr = RB_Node<Key_T> *;
+    using result = std::tuple<node_ptr, node_ptr, Child_T>;
+    
+    assert (node);
+    
+    node_ptr parent = nullptr;
+    auto pos = Child_T::no_matter;
+
+    while (node)
+    {
+        if (key == node->key())
+            return result{node, parent, Child_T::no_matter};
+        
+        parent = node;
+        if (key < node->key())
+        {
+            node = node->left_;
+            pos = Child_T::left;
+        }
+        else
+        {
+            node = node->right_;
+            pos = Child_T::right;
+        }
+    }
+
+    return result{node, parent, pos};
+}
+
 // Sometimes root_ can be affected. So it has to be changed if necessary
 template<typename Key_T>
 void left_rotate (RB_Node<Key_T> *x)
 {
+    assert (x && x->right_);
+    
     auto y = x->right_;
 
     x->right_ = y->left_;
@@ -162,6 +229,8 @@ void left_rotate (RB_Node<Key_T> *x)
 template <typename Key_T>
 void right_rotate (RB_Node<Key_T> *x)
 {
+    assert (x && x->left_);
+
     auto y = x->left_;
 
     x->left_ = y->right_;
@@ -210,6 +279,8 @@ auto fixup_subroutine_2 (RB_Node<Key_T> *new_node)
 template <typename Key_T>
 void rb_insert_fixup (const RB_Node<Key_T> *root, RB_Node<Key_T> *new_node)
 {       
+    assert (root && new_node);
+    
     // Checks if "The root is black" property violated
     if (new_node == root)
     {
@@ -295,7 +366,7 @@ public:
 
     self &operator++ ()
     {
-        node_ = static_cast<node_ptr>(details::successor (node_));
+        node_ = details::successor (node_);
         return *this;
     }
     
@@ -320,8 +391,6 @@ public:
     }
 
     bool operator== (const self &rhs) const { return node_ == rhs.node_; }
-
-    auto base () const { return node_; }
 };
 
 template <typename Key_T>
@@ -373,8 +442,6 @@ public:
     }
 
     bool operator== (const self &rhs) const { return node_ == rhs.node_; }
-
-    auto base () const { return node_; }
 };
 
 } // namespace iterators
@@ -394,10 +461,10 @@ class RB_Tree final
 
     end_node_ptr end_node_;
 
-    node_ptr leftmost_ = nullptr;
+    node_ptr leftmost_  = nullptr;
     node_ptr rightmost_ = nullptr;
 
-    std::size_t size = 0;
+    std::size_t size_ = 0;
 
 public:
 
@@ -406,57 +473,68 @@ public:
 
     RB_Tree () : end_node_ {new End_Node<node_ptr>} {}
 
-    #ifdef DEBUG
-
-    auto begin () { return iterator{static_cast<node_ptr>(details::minimum (root()))}; }
-    auto begin () const { return const_iterator{static_cast<node_ptr>(details::minimum (root()))}; }
-    auto cbegin () const { return const_iterator{static_cast<node_ptr>(details::minimum (root()))}; }
-
-    #else
-
     auto begin () { return iterator{leftmost_}; }
     auto begin () const { return const_iterator{leftmost_}; }
     auto cbegin () const { return const_iterator{leftmost_}; }
 
-    #endif
+    auto end () { return iterator{end_node()}; }
+    auto end () const { return const_iterator{end_node()}; }
+    auto cend () const { return const_iterator{end_node()}; }
 
-    auto end () { return iterator{root()->parent_}; }
-    auto end () const { return const_iterator{root()->parent_}; }
-    auto cend () const { return const_iterator{root()->parent_}; }
+    auto find (const Key_T &key) { return iterator{details::find (key)}; }
+    auto find (const Key_T &key) const { return const_iterator{details::find (key)}; }
 
     std::pair<iterator, bool> insert (const Key_T &key)
     {
-        auto new_node = new RB_Node<Key_T>{key, RB_Color::red};
-        
-        node_ptr y = nullptr;
-        node_ptr x = root();
-
-        while (x)
+        if (size_ == 0) // Tree is empty
         {
-            y = x;
-            x = (key < x->key()) ? static_cast<node_ptr>(x->left_) : static_cast<node_ptr>(x->right_);
-        }
+            auto new_node = new RB_Node<Key_T>{key, RB_Color::black};
 
-        new_node->parent_ = y;
-        if (y == nullptr)
-        {
             root() = new_node;
-            root()->parent_ = static_cast<node_ptr>(end_node_);
-        }   
-        else if (key < y->key())
-            y->left_ = new_node;
+            root()->parent_ = end_node();
+
+            leftmost_ = rightmost_ = new_node;
+            size_++;
+
+            return {iterator{new_node}, true};
+        }
         else
-            y->right_ = new_node;
+        {
+            auto [node, parent, child_type] = details::find_v2 (root(), key);
+        
+            if (node == nullptr) // No node with such key in the tree
+            {
+                auto new_node = new RB_Node<Key_T>{key, RB_Color::red};
+                new_node->parent_ = parent;
 
-        details::rb_insert_fixup (root(), new_node);
+                if (child_type == details::Child_T::left)
+                    parent->left_ = new_node;
+                else
+                    parent->right_ = new_node;
 
-        return {iterator{new_node}, true};
+                details::rb_insert_fixup (root(), new_node);
+
+                if (new_node == leftmost_->left_)
+                    leftmost_ = new_node;
+                else if (new_node == rightmost_->right_)
+                    rightmost_ = new_node;
+
+                size_++;
+
+                return {iterator{new_node}, true};
+            }
+            else
+                return {iterator{node}, false};
+        }
     }
 
 private:
 
     node_ptr &root () noexcept { return end_node_->left_; }
     const_node_ptr root () const noexcept { return end_node_->left_; }
+
+    node_ptr end_node () noexcept { return static_cast<node_ptr>(end_node_); }
+    const_node_ptr end_node () const noexcept { return static_cast<node_ptr>(end_node_); }
 };
 
 } // namespace yLab
