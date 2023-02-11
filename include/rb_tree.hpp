@@ -192,6 +192,60 @@ RB_Node<Key_T> *find (RB_Node<Key_T> *node, const Key_T &key)
     return const_cast<RB_Node<Key_T> *>(find (static_cast<const RB_Node<Key_T> *>(node), key));
 }
 
+// Finds first element that is not less than key
+template <typename Key_T>
+const RB_Node<Key_T> *lower_bound (const RB_Node<Key_T> *node, const Key_T &key)
+{
+    assert (node);
+
+    const RB_Node<Key_T> *result = nullptr;
+    while (node)
+    {
+        if (key <= node->key())
+        {
+            result = node;
+            node = node->left_;
+        }
+        else
+            node = node->right_;
+    }
+
+    return result;
+}
+
+template <typename Key_T>
+RB_Node<Key_T> *lower_bound (RB_Node<Key_T> *node, const Key_T &key)
+{    
+    return const_cast<RB_Node<Key_T> *>(lower_bound (static_cast<const RB_Node<Key_T> *>(node), key));
+}
+
+// Finds first element that is greater than key
+template <typename Key_T>
+const RB_Node<Key_T> *upper_bound (const RB_Node<Key_T> *node, const Key_T &key)
+{
+    assert (node);
+
+    const RB_Node<Key_T> *result = nullptr;
+    while (node)
+    {
+        if (key < node->key())
+        {
+            result = node;
+            node = node->left_;
+        }
+        else
+            node = node->right_;
+    }
+
+    return result;
+}
+
+template <typename Key_T>
+RB_Node<Key_T> *upper_bound (RB_Node<Key_T> *node, const Key_T &key)
+{
+    return const_cast<RB_Node<Key_T> *>(upper_bound (static_cast<const RB_Node<Key_T> *>(node), key));
+}
+
 enum class Child_T
 {
     left,
@@ -326,7 +380,7 @@ void rb_insert_fixup (const RB_Node<Key_T> *root, RB_Node<Key_T> *new_node)
         // First condition is important only for iterations 2, 3, ... but not for 1
         // (new_node->parent_->color_ == RB_Color::red) ==> (new_node->parent_ != root_)
         
-        if (details::is_left_child (new_node->parent_))
+        if (is_left_child (new_node->parent_))
         {
             // (new_node->parent_ != root_) ==> exitsts (new_node->parent_->parent_)
             RB_Node<Key_T> *uncle = new_node->parent_->parent_->right_;
@@ -335,13 +389,13 @@ void rb_insert_fixup (const RB_Node<Key_T> *root, RB_Node<Key_T> *new_node)
                 new_node = fixup_subroutine_1 (new_node, uncle, root);
             else
             {
-                if (!details::is_left_child (new_node->parent_))
+                if (!is_left_child (new_node->parent_))
                 {
                     new_node = new_node->parent_;
-                    details::left_rotate (new_node);
+                    left_rotate (new_node);
                 }
 
-                details::right_rotate (fixup_subroutine_2 (new_node));
+                right_rotate (fixup_subroutine_2 (new_node));
                 break;
             }
         }
@@ -354,13 +408,13 @@ void rb_insert_fixup (const RB_Node<Key_T> *root, RB_Node<Key_T> *new_node)
                 new_node = fixup_subroutine_1 (new_node, uncle, root);
             else
             {
-                if (details::is_left_child (new_node->parent_))
+                if (is_left_child (new_node->parent_))
                 {
                     new_node = new_node->parent_;
                     details::right_rotate (new_node);
                 }
 
-                details::left_rotate (fixup_subroutine_2 (new_node));
+                left_rotate (fixup_subroutine_2 (new_node));
                 break;
             }
         }
@@ -375,11 +429,6 @@ namespace iterators
 template <typename Key_T>
 class tree_iterator final
 {
-    using node_ptr = RB_Node<Key_T> *;
-    using self = tree_iterator;
-    
-    node_ptr node_;
-
 public:
 
     using iterator_category = typename std::bidirectional_iterator_tag;
@@ -387,6 +436,16 @@ public:
     using value_type = Key_T;
     using reference = const Key_T&;
     using pointer = const Key_T*;
+
+private:
+
+    using node_ptr = RB_Node<value_type> *;
+    using const_node_ptr = const RB_Node<value_type> *;
+    using self = tree_iterator;
+    
+    node_ptr node_;
+
+public:
 
     tree_iterator () = default;
     tree_iterator (node_ptr node) : node_{node} {}
@@ -421,16 +480,13 @@ public:
     }
 
     bool operator== (const self &rhs) const { return node_ == rhs.node_; }
+
+    const_node_ptr base () const { return node_; }
 };
 
 template <typename Key_T>
 class const_tree_iterator final
 {
-    using node_ptr = const RB_Node<Key_T> *;
-    using self = const_tree_iterator;
-    
-    node_ptr node_;
-
 public:
 
     using iterator_category = typename std::bidirectional_iterator_tag;
@@ -438,6 +494,15 @@ public:
     using value_type = const Key_T;
     using reference = const Key_T&;
     using pointer = const Key_T*;
+
+private:
+
+    using node_ptr = const RB_Node<Key_T> *;
+    using self = const_tree_iterator;
+    
+    node_ptr node_;
+
+public:
 
     const_tree_iterator () = default;
     const_tree_iterator (node_ptr node) : node_{node} {}
@@ -472,6 +537,8 @@ public:
     }
 
     bool operator== (const self &rhs) const { return node_ == rhs.node_; }
+
+    node_ptr base () const { return node_; }
 };
 
 } // namespace iterators
@@ -582,19 +649,37 @@ public:
     iterator find (const key_type &key)
     {
         auto node = details::find (root(), key);
-        if (node)
-            return iterator{node};
-        else
-            return end();
+        return (node) ? iterator{node} : end();
     }
 
     const_iterator find (const key_type &key) const
     {
         auto node = details::find (root(), key);
-        if (node)
-            return const_iterator{node};
-        else
-            return cend();
+        return (node) ? const_iterator{node} : cend();
+    }
+
+    iterator lower_bound (const key_type &key)
+    {
+        auto node = details::lower_bound (root(), key);
+        return (node) ? iterator{node} : end();
+    }
+
+    const_iterator lower_bound (const key_type &key) const
+    {
+        auto node = details::lower_bound (root(), key);
+        return (node) ? const_iterator{node} : cend();
+    }
+
+    iterator upper_bound (const key_type &key)
+    {
+        auto node = details::upper_bound (root(), key);
+        return (node) ? iterator{node} : end();
+    }
+
+    const_iterator upper_bound (const key_type &key) const
+    {
+        auto node = details::upper_bound (root(), key);
+        return (node) ? const_iterator{node} : cend();
     }
 
     bool contains (const key_type &key) const { return find (key) != end(); }
