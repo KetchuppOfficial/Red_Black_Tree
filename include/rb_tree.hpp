@@ -91,7 +91,7 @@ namespace details
 {
 
 template<typename Key_T>
-bool is_left_child (RB_Node<Key_T> *node) noexcept
+bool is_left_child (const RB_Node<Key_T> *node) noexcept
 {
     assert (node && node->parent_);
     
@@ -99,7 +99,7 @@ bool is_left_child (RB_Node<Key_T> *node) noexcept
 }
 
 template<typename Key_T>
-auto minimum (RB_Node<Key_T> *node) noexcept
+const RB_Node<Key_T> *minimum (const RB_Node<Key_T> *node) noexcept
 {
     assert (node);
     
@@ -110,7 +110,13 @@ auto minimum (RB_Node<Key_T> *node) noexcept
 }
 
 template<typename Key_T>
-auto maximum (RB_Node<Key_T> *node) noexcept
+RB_Node<Key_T> *minimum (RB_Node<Key_T> *node) noexcept
+{
+    return const_cast<RB_Node<Key_T> *>(minimum (static_cast<const RB_Node<Key_T> *>(node)));
+}
+
+template<typename Key_T>
+const RB_Node<Key_T> *maximum (const RB_Node<Key_T> *node) noexcept
 {
     assert (node);
     
@@ -121,7 +127,13 @@ auto maximum (RB_Node<Key_T> *node) noexcept
 }
 
 template<typename Key_T>
-auto successor (RB_Node<Key_T> *node) noexcept
+RB_Node<Key_T> *maximum (RB_Node<Key_T> *node) noexcept
+{
+    return const_cast<RB_Node<Key_T> *>(maximum (static_cast<const RB_Node<Key_T> *>(node)));
+}
+
+template<typename Key_T>
+const RB_Node<Key_T> *successor (const RB_Node<Key_T> *node) noexcept
 {
     assert (node);
     
@@ -137,7 +149,13 @@ auto successor (RB_Node<Key_T> *node) noexcept
 }
 
 template<typename Key_T>
-auto predecessor (RB_Node<Key_T> *node) noexcept
+RB_Node<Key_T> *successor (RB_Node<Key_T> *node) noexcept
+{
+    return const_cast<RB_Node<Key_T> *>(successor (static_cast<const RB_Node<Key_T> *>(node)));
+}
+
+template<typename Key_T>
+const RB_Node<Key_T> *predecessor (const RB_Node<Key_T> *node) noexcept
 {
     assert (node);
     
@@ -151,8 +169,14 @@ auto predecessor (RB_Node<Key_T> *node) noexcept
     return node->parent_;
 }
 
+template<typename Key_T>
+RB_Node<Key_T> *predecessor (RB_Node<Key_T> *node) noexcept
+{
+    return const_cast<RB_Node<Key_T> *>(prececessor (static_cast<const RB_Node<Key_T> *>(node)));
+}
+
 template <typename Key_T>
-auto find (RB_Node<Key_T> *node, const Key_T &key)
+const RB_Node<Key_T> *find (const RB_Node<Key_T> *node, const Key_T &key)
 {
     assert (node);
     
@@ -160,6 +184,12 @@ auto find (RB_Node<Key_T> *node, const Key_T &key)
         node = (key < node->key()) ? node->left_ : node->right_;
 
     return node;
+}
+
+template <typename Key_T>
+RB_Node<Key_T> *find (RB_Node<Key_T> *node, const Key_T &key)
+{
+    return const_cast<RB_Node<Key_T> *>(find (static_cast<const RB_Node<Key_T> *>(node), key));
 }
 
 enum class Child_T
@@ -399,7 +429,7 @@ class const_tree_iterator final
     using node_ptr = const RB_Node<Key_T> *;
     using self = const_tree_iterator;
     
-    node_ptr *node_;
+    node_ptr node_;
 
 public:
 
@@ -549,8 +579,25 @@ public:
 
     // Lookup
 
-    auto find (const key_type &key) { return iterator{details::find (key)}; }
-    auto find (const key_type &key) const { return const_iterator{details::find (key)}; }
+    iterator find (const key_type &key)
+    {
+        auto node = details::find (root(), key);
+        if (node)
+            return iterator{node};
+        else
+            return end();
+    }
+
+    const_iterator find (const key_type &key) const
+    {
+        auto node = details::find (root(), key);
+        if (node)
+            return const_iterator{node};
+        else
+            return cend();
+    }
+
+    bool contains (const key_type &key) const { return find (key) != end(); }
 
 private:
 
