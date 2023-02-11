@@ -454,10 +454,26 @@ public:
 template <typename Key_T>
 class RB_Tree final
 {
-    using node_ptr = RB_Node<Key_T> *;
-    using const_node_ptr = const RB_Node<Key_T> *;
-    using end_node_ptr = End_Node<node_ptr> *;
-    using const_end_node_ptr = const End_Node<node_ptr> *;
+public:
+
+    using key_type = Key_T;
+    using value_type = key_type;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using reference = value_type &;
+    using const_reference = const value_type &;
+    using node_type = RB_Node<key_type>;
+    using pointer = value_type *;
+    using const_pointer = const value_type *;
+    using iterator = iterators::tree_iterator<key_type>;
+    using const_iterator = iterators::const_tree_iterator<key_type>;
+
+private:
+
+    using node_ptr = node_type *;
+    using const_node_ptr = const node_type *;
+    using end_node_type = End_Node<node_ptr>;
+    using end_node_ptr = end_node_type *;
 
     end_node_ptr end_node_;
 
@@ -468,10 +484,14 @@ class RB_Tree final
 
 public:
 
-    using iterator = iterators::tree_iterator<Key_T>;
-    using const_iterator = iterators::const_tree_iterator<Key_T>;
+    RB_Tree () : end_node_ {new end_node_type} {}
 
-    RB_Tree () : end_node_ {new End_Node<node_ptr>} {}
+    // Capacity
+
+    auto size () const { return size_; }
+    bool empty () const { return size_ == 0; }
+
+    // Iterators
 
     auto begin () { return iterator{leftmost_}; }
     auto begin () const { return const_iterator{leftmost_}; }
@@ -481,14 +501,13 @@ public:
     auto end () const { return const_iterator{end_node()}; }
     auto cend () const { return const_iterator{end_node()}; }
 
-    auto find (const Key_T &key) { return iterator{details::find (key)}; }
-    auto find (const Key_T &key) const { return const_iterator{details::find (key)}; }
+    // Modifiers
 
-    std::pair<iterator, bool> insert (const Key_T &key)
+    std::pair<iterator, bool> insert (const key_type &key)
     {
         if (size_ == 0) // Tree is empty
         {
-            auto new_node = new RB_Node<Key_T>{key, RB_Color::black};
+            auto new_node = new node_type{key, RB_Color::black};
 
             root() = new_node;
             root()->parent_ = end_node();
@@ -504,7 +523,7 @@ public:
         
             if (node == nullptr) // No node with such key in the tree
             {
-                auto new_node = new RB_Node<Key_T>{key, RB_Color::red};
+                auto new_node = new node_type{key, RB_Color::red};
                 new_node->parent_ = parent;
 
                 if (child_type == details::Child_T::left)
@@ -527,6 +546,11 @@ public:
                 return {iterator{node}, false};
         }
     }
+
+    // Lookup
+
+    auto find (const key_type &key) { return iterator{details::find (key)}; }
+    auto find (const key_type &key) const { return const_iterator{details::find (key)}; }
 
 private:
 
