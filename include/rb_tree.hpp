@@ -602,7 +602,7 @@ public:
 
     std::pair<iterator, bool> insert (const key_type &key)
     {
-        if (size_ == 0) // Tree is empty
+        if (empty())
         {
             auto new_node = new node_type{key, RB_Color::black};
 
