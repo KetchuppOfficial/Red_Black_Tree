@@ -19,9 +19,9 @@ class End_Node
 
 public:
 
-    Ptr_T left_ = nullptr;
+    Ptr_T left_;
 
-    End_Node () = default;
+    End_Node (Ptr_T left = nullptr) : left_{left} {}
 
     End_Node (const self &rhs) = delete;
     self &operator= (const self &rhs) = delete;
@@ -568,6 +568,7 @@ public:
 
 private:
 
+    using self = RB_Tree<key_type>;
     using node_ptr = node_type *;
     using const_node_ptr = const node_type *;
     using end_node_type = End_Node<node_ptr>;
@@ -575,14 +576,79 @@ private:
 
     end_node_ptr end_node_;
 
-    node_ptr leftmost_  = nullptr;
+    node_ptr leftmost_  = end_node();
     node_ptr rightmost_ = nullptr;
 
     std::size_t size_ = 0;
 
 public:
 
-    RB_Tree () : end_node_ {new end_node_type} {}
+    RB_Tree () : end_node_{new end_node_type{}} {}
+
+    RB_Tree (const self &rhs) : end_node_{new end_node_type{}}, size_{rhs.size_}
+    {
+        if (rhs.root())
+        {
+            auto rhs_node = const_cast<node_ptr>(rhs.root());
+            root() = new node_type{rhs_node->key(), rhs_node->color_};
+            root()->parent_ = end_node();
+
+            node_ptr node = root();
+            while (rhs_node != rhs.end_node())
+            {
+                std::cout << "JOPA" << std::endl;
+                if (rhs_node->left_ && node->left_ == nullptr)
+                {
+                    rhs_node = rhs_node->left_;
+                    node->left_ = new node_type{rhs_node->key(), rhs_node->color_};
+                    node->left_->parent_ = node;
+                    node = node->left_;
+
+                    if (rhs_node == rhs.leftmost_)
+                        leftmost_ = node;
+                }
+                else if (rhs_node->right_ && node->right_ == nullptr)
+                {
+                    rhs_node = rhs_node->right_;
+                    node->right_ = new node_type{rhs_node->key(), rhs_node->color_};
+                    node->right_->parent_ = node;
+                    node = node->right_;
+
+                    if (rhs_node == rhs.rightmost_)
+                        rightmost_ = node;
+                }
+                else
+                {
+                    rhs_node = rhs_node->parent_;
+                    node = node->parent_;
+                }
+            }
+        }
+    }
+
+    self &operator= (const self &rhs)
+    {
+        auto tmp_tree{rhs};
+        std::swap (*this, tmp_tree);
+
+        return *this;
+    }
+
+    RB_Tree (self &&rhs) noexcept
+            : end_node_{std::move (rhs.end_node_)},
+              leftmost_{std::exchange (rhs.leftmost_, rhs.end_node())},
+              rightmost_{std::exchange (rhs.rightmost_, nullptr)},
+              size_{std::exchange (rhs.size_, 0)} {}
+
+    self &operator= (self &&rhs) noexcept
+    {
+        std::swap (end_node_, rhs.end_node_);
+        std::swap (leftmost_, rhs.leftmost_);
+        std::swap (rightmost_, rhs.rightmost_);
+        std::swap (size_, rhs.size_);
+
+        return *this;
+    }
 
     // Capacity
 
