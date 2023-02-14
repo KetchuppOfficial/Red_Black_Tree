@@ -590,7 +590,6 @@ public:
             node_ptr node = root();
             while (rhs_node != rhs.end_node())
             {
-                std::cout << "JOPA" << std::endl;
                 if (rhs_node->left_ && node->left_ == nullptr)
                 {
                     rhs_node = rhs_node->left_;
