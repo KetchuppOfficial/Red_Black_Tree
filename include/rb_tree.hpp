@@ -179,8 +179,6 @@ RB_Node<Key_T> *predecessor (RB_Node<Key_T> *node) noexcept
 template <typename Key_T>
 const RB_Node<Key_T> *find (const RB_Node<Key_T> *node, const Key_T &key)
 {
-    assert (node);
-    
     while (node && key != node->key())
         node = (key < node->key()) ? node->left_ : node->right_;
 
@@ -197,8 +195,6 @@ RB_Node<Key_T> *find (RB_Node<Key_T> *node, const Key_T &key)
 template <typename Key_T>
 const RB_Node<Key_T> *lower_bound (const RB_Node<Key_T> *node, const Key_T &key)
 {
-    assert (node);
-
     const RB_Node<Key_T> *result = nullptr;
     while (node)
     {
@@ -224,8 +220,6 @@ RB_Node<Key_T> *lower_bound (RB_Node<Key_T> *node, const Key_T &key)
 template <typename Key_T>
 const RB_Node<Key_T> *upper_bound (const RB_Node<Key_T> *node, const Key_T &key)
 {
-    assert (node);
-
     const RB_Node<Key_T> *result = nullptr;
     while (node)
     {
@@ -574,7 +568,7 @@ private:
     using end_node_type = End_Node<node_ptr>;
     using end_node_ptr = end_node_type *;
 
-    end_node_ptr end_node_;
+    end_node_ptr end_node_ = new end_node_type{};
 
     node_ptr leftmost_  = end_node();
     node_ptr rightmost_ = nullptr;
@@ -583,7 +577,7 @@ private:
 
 public:
 
-    RB_Tree () : end_node_{new end_node_type{}} {}
+    RB_Tree () = default;
 
     RB_Tree (const self &rhs) : end_node_{new end_node_type{}}, size_{rhs.size_}
     {
