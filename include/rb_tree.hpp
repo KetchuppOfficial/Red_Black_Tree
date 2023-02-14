@@ -579,7 +579,7 @@ public:
 
     RB_Tree () = default;
 
-    RB_Tree (const self &rhs) : end_node_{new end_node_type{}}, size_{rhs.size_}
+    RB_Tree (const self &rhs) : size_{rhs.size_}
     {
         if (rhs.root())
         {
