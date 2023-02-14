@@ -241,7 +241,7 @@ RB_Node<Key_T> *upper_bound (RB_Node<Key_T> *node, const Key_T &key)
     return const_cast<RB_Node<Key_T> *>(upper_bound (static_cast<const RB_Node<Key_T> *>(node), key));
 }
 
-enum class Child_T
+enum class Child_Side
 {
     left,
     right,
@@ -254,28 +254,26 @@ template <typename Key_T>
 auto find_v2 (RB_Node<Key_T> *node, const Key_T &key)
 {
     using node_ptr = RB_Node<Key_T> *;
-    using result = std::tuple<node_ptr, node_ptr, Child_T>;
-    
-    assert (node);
+    using result = std::tuple<node_ptr, node_ptr, Child_Side>;
     
     node_ptr parent = nullptr;
-    auto pos = Child_T::no_matter;
+    auto pos = Child_Side::no_matter;
 
     while (node)
     {
         if (key == node->key())
-            return result{node, parent, Child_T::no_matter};
+            return result{node, parent, Child_Side::no_matter};
         
         parent = node;
         if (key < node->key())
         {
             node = node->left_;
-            pos = Child_T::left;
+            pos = Child_Side::left;
         }
         else
         {
             node = node->right_;
-            pos = Child_T::right;
+            pos = Child_Side::right;
         }
     }
 
@@ -683,7 +681,7 @@ public:
                 auto new_node = new node_type{key, RB_Color::red};
                 new_node->parent_ = parent;
 
-                if (child_type == details::Child_T::left)
+                if (child_type == details::Child_Side::left)
                     parent->left_ = new_node;
                 else
                     parent->right_ = new_node;
