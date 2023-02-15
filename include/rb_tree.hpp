@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <cassert>
 #include <fstream>
+#include <initializer_list>
 
 namespace yLab
 {
@@ -644,14 +645,7 @@ public:
     {
         if (empty())
         {
-            auto new_node = new node_type{key, RB_Color::black};
-
-            root() = new_node;
-            root()->parent_ = end_node();
-
-            leftmost_ = rightmost_ = new_node;
-            size_++;
-
+            auto new_node = insert_root (key);
             return {iterator{new_node}, true};
         }
         else
@@ -660,28 +654,25 @@ public:
         
             if (node == nullptr) // No node with such key in the tree
             {
-                auto new_node = new node_type{key, RB_Color::red};
-                new_node->parent_ = parent;
-
-                if (key < parent->key())
-                    parent->left_ = new_node;
-                else
-                    parent->right_ = new_node;
-
-                details::rb_insert_fixup (root(), new_node);
-
-                if (new_node == leftmost_->left_)
-                    leftmost_ = new_node;
-                else if (new_node == rightmost_->right_)
-                    rightmost_ = new_node;
-
-                size_++;
-
+                auto new_node = insert_hint_unique (parent, key);
                 return {iterator{new_node}, true};
             }
             else
                 return {iterator{node}, false};
         }
+    }
+
+    template<std::input_iterator it>
+    void insert (it first, it last)
+    {
+        for (; first != last; ++first)
+            insert_unique (*first);
+    }
+
+    void insert (std::initializer_list<value_type> ilist)
+    {
+        for (auto it = ilist.begin(), end = ilist.end(); it != end; ++it)
+            insert_unique (*it);
     }
 
     // Lookup
@@ -732,9 +723,52 @@ private:
     node_ptr end_node () noexcept { return static_cast<node_ptr>(end_node_); }
     const_node_ptr end_node () const noexcept { return static_cast<node_ptr>(end_node_); }
 
-    iterator insert_unique (const key_type &key)
+    node_ptr insert_root (const key_type &key)
     {
+        auto new_node = new node_type{key, RB_Color::black};
 
+        root() = new_node;
+        root()->parent_ = end_node();
+
+        leftmost_ = rightmost_ = new_node;
+        size_++;
+
+        return new_node;
+    }
+
+    node_ptr insert_hint_unique (node_ptr parent, const key_type &key)
+    {
+        auto new_node = new node_type{key, RB_Color::red};
+        new_node->parent_ = parent;
+
+        if (key < parent->key())
+            parent->left_ = new_node;
+        else
+            parent->right_ = new_node;
+
+        details::rb_insert_fixup (root(), new_node);
+
+        if (new_node == leftmost_->left_)
+            leftmost_ = new_node;
+        else if (new_node == rightmost_->right_)
+            rightmost_ = new_node;
+
+        size_++;
+
+        return new_node;
+    }
+
+    void insert_unique (const key_type &key)
+    {
+        if (empty())
+            insert_root (key);
+        else
+        {
+            auto [node, parent] = details::find_v2 (root(), key);
+        
+            if (node == nullptr)
+                insert_hint_unique (parent, key);
+        }
     }
 };
 
