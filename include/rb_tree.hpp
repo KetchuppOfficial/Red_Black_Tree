@@ -626,18 +626,18 @@ public:
 
     ~RB_Tree ()
     {
-        for (node_ptr it = root(), save{}; it != nullptr; it = save)
+        for (node_ptr node = root(), save{}; node != nullptr; node = save)
         {
-            if (it->left_ == nullptr)
+            if (node->left_ == nullptr)
             {
-                save = it->right_;
-                delete it;
+                save = node->right_;
+                delete node;
             }
             else
             {
-                save = it->left_;
-                it->left_ = save->right_;
-                save->right_ = it;
+                save = node->left_;
+                node->left_ = save->right_;
+                save->right_ = node;
             }
         }
 
@@ -790,6 +790,21 @@ private:
                 insert_hint_unique (parent, key);
         }
     }
+
+#if 0
+    // Replaces subtree rooted at node U with the subtree rooted at node V
+    void transplant (node_ptr u, node_ptr v)
+    {
+        if (u->parent_ == end_node())
+            root() = v;
+        else if (details::is_left_child (u))
+            u->parent_->left_ = v;
+        else
+            u->parent_->right_ = v;
+
+        v->parent_ = u->parent_;
+    }
+#endif
 };
 
 namespace graphic_dump
