@@ -624,6 +624,26 @@ public:
         return *this;
     }
 
+    ~RB_Tree ()
+    {
+        for (node_ptr it = root(), save{}; it != nullptr; it = save)
+        {
+            if (it->left_ == nullptr)
+            {
+                save = it->right_;
+                delete it;
+            }
+            else
+            {
+                save = it->left_;
+                it->left_ = save->right_;
+                save->right_ = it;
+            }
+        }
+
+        delete end_node_;
+    }
+
     // Capacity
 
     auto size () const { return size_; }
