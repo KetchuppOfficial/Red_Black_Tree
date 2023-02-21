@@ -7,6 +7,8 @@
 #include <cassert>
 #include <fstream>
 #include <initializer_list>
+#include <memory>
+#include <vector>
 
 namespace yLab
 {
@@ -548,8 +550,12 @@ private:
     using const_node_ptr = const node_type *;
     using end_node_type = End_Node<node_ptr>;
     using end_node_ptr = end_node_type *;
+    using u_node_ptr = std::unique_ptr<node_type>;
+    using u_end_node_ptr = std::unique_ptr<end_node_type>;
 
-    end_node_ptr end_node_ = new end_node_type{};
+    std::vector<u_node_ptr> nodes_;
+
+    u_end_node_ptr end_node_ = std::make_unique<end_node_type>();
 
     node_ptr leftmost_  = end_node();
     node_ptr rightmost_ = nullptr;
@@ -565,7 +571,8 @@ public:
         if (rhs.root())
         {
             auto rhs_node = const_cast<node_ptr>(rhs.root());
-            root() = new node_type{rhs_node->key(), rhs_node->color_};
+
+            root() = insert_node (rhs_node->key(), rhs_node->color_);
             root()->parent_ = end_node();
 
             node_ptr node = root();
@@ -574,7 +581,8 @@ public:
                 if (rhs_node->left_ && node->left_ == nullptr)
                 {
                     rhs_node = rhs_node->left_;
-                    node->left_ = new node_type{rhs_node->key(), rhs_node->color_};
+
+                    node->left_ = insert_node (rhs_node->key(), rhs_node->color_);
                     node->left_->parent_ = node;
                     node = node->left_;
 
@@ -584,7 +592,8 @@ public:
                 else if (rhs_node->right_ && node->right_ == nullptr)
                 {
                     rhs_node = rhs_node->right_;
-                    node->right_ = new node_type{rhs_node->key(), rhs_node->color_};
+
+                    node->right_ = insert_node (rhs_node->key(), rhs_node->color_);
                     node->right_->parent_ = node;
                     node = node->right_;
 
@@ -609,13 +618,15 @@ public:
     }
 
     RB_Tree (self &&rhs) noexcept
-            : end_node_{std::move (rhs.end_node_)},
+            : nodes_{std::move (rhs.node_)},
+              end_node_{std::move (rhs.end_node_)},
               leftmost_{std::exchange (rhs.leftmost_, rhs.end_node())},
               rightmost_{std::exchange (rhs.rightmost_, nullptr)},
               size_{std::exchange (rhs.size_, 0)} {}
 
     self &operator= (self &&rhs) noexcept
     {
+        std::swap (nodes_, rhs.nodes_);
         std::swap (end_node_, rhs.end_node_);
         std::swap (leftmost_, rhs.leftmost_);
         std::swap (rightmost_, rhs.rightmost_);
@@ -624,25 +635,7 @@ public:
         return *this;
     }
 
-    ~RB_Tree ()
-    {
-        for (node_ptr node = root(), save{}; node != nullptr; node = save)
-        {
-            if (node->left_ == nullptr)
-            {
-                save = node->right_;
-                delete node;
-            }
-            else
-            {
-                save = node->left_;
-                node->left_ = save->right_;
-                save->right_ = node;
-            }
-        }
-
-        delete end_node_;
-    }
+    ~RB_Tree () = default;
 
     // Capacity
 
@@ -737,16 +730,24 @@ public:
 
 private:
 
-    node_ptr &root () noexcept { return end_node_->left_; }
-    const_node_ptr root () const noexcept { return end_node_->left_; }
+    node_ptr end_node () noexcept { return static_cast<node_ptr>(end_node_.get()); }
+    const_node_ptr end_node () const noexcept { return static_cast<node_ptr>(end_node_.get()); }
 
-    node_ptr end_node () noexcept { return static_cast<node_ptr>(end_node_); }
-    const_node_ptr end_node () const noexcept { return static_cast<node_ptr>(end_node_); }
+    node_ptr &root () noexcept { return end_node()->left_; }
+    const_node_ptr root () const noexcept { return end_node()->left_; }
+
+    node_ptr insert_node (const key_type &key, const RB_Color color)
+    {
+        u_node_ptr new_node {new node_type{key, color}};
+        nodes_.push_back (std::move (new_node));
+
+        return nodes_.back().get();
+    }
 
     node_ptr insert_root (const key_type &key)
     {
-        auto new_node = new node_type{key, RB_Color::black};
-
+        auto new_node = insert_node (key, RB_Color::black);
+        
         root() = new_node;
         root()->parent_ = end_node();
 
@@ -758,7 +759,7 @@ private:
 
     node_ptr insert_hint_unique (node_ptr parent, const key_type &key)
     {
-        auto new_node = new node_type{key, RB_Color::red};
+        auto new_node = insert_node (key, RB_Color::red);
         new_node->parent_ = parent;
 
         if (key < parent->key())
