@@ -148,6 +148,15 @@ public:
 
     void swap (self &other) { std::swap (*this, other); }
 
+    void clear ()
+    {
+        nodes_.clear();
+
+        leftmost_ = rightmost_ = nullptr;
+        root() = nullptr;
+        size_ = 0;  
+    }
+
     std::pair<iterator, bool> insert (const key_type &key)
     {
         if (empty())
