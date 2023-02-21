@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "rb_tree.hpp"
+#include "details.hpp"
 
 /*
  *   |               |

@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
-#include "rb_tree.hpp"
-
+#include "nodes.hpp"
 
 TEST (End_Node, Move_Constructor)
 {
