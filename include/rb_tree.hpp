@@ -52,13 +52,11 @@ private:
     node_ptr leftmost_  = end_node();
     node_ptr rightmost_ = nullptr;
 
-    std::size_t size_ = 0;
-
 public:
 
     RB_Tree () = default;
 
-    RB_Tree (const self &rhs) : size_{rhs.size_}
+    RB_Tree (const self &rhs)
     {
         if (rhs.root())
         {
@@ -113,8 +111,7 @@ public:
             : nodes_{std::move (rhs.node_)},
               end_node_{std::move (rhs.end_node_)},
               leftmost_{std::exchange (rhs.leftmost_, rhs.end_node())},
-              rightmost_{std::exchange (rhs.rightmost_, nullptr)},
-              size_{std::exchange (rhs.size_, 0)} {}
+              rightmost_{std::exchange (rhs.rightmost_, nullptr)} {}
 
     self &operator= (self &&rhs) noexcept
     {
@@ -122,7 +119,6 @@ public:
         std::swap (end_node_, rhs.end_node_);
         std::swap (leftmost_, rhs.leftmost_);
         std::swap (rightmost_, rhs.rightmost_);
-        std::swap (size_, rhs.size_);
 
         return *this;
     }
@@ -131,8 +127,8 @@ public:
 
     // Capacity
 
-    auto size () const { return size_; }
-    bool empty () const { return size_ == 0; }
+    auto size () const { return nodes_.size(); }
+    bool empty () const { return size() == 0; }
 
     // Iterators
 
@@ -153,8 +149,7 @@ public:
         nodes_.clear();
 
         leftmost_ = rightmost_ = nullptr;
-        root() = nullptr;
-        size_ = 0;  
+        root() = nullptr; 
     }
 
     std::pair<iterator, bool> insert (const key_type &key)
@@ -255,7 +250,6 @@ private:
         root()->parent_ = end_node();
 
         leftmost_ = rightmost_ = new_node;
-        size_++;
 
         return new_node;
     }
@@ -276,8 +270,6 @@ private:
             leftmost_ = new_node;
         else if (new_node == rightmost_->right_)
             rightmost_ = new_node;
-
-        size_++;
 
         return new_node;
     }
