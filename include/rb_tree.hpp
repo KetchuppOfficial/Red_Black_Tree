@@ -56,6 +56,11 @@ public:
 
     RB_Tree () = default;
 
+    template <std::input_iterator it>
+    RB_Tree (it first, it last) { insert (first, last); }
+
+    RB_Tree (std::initializer_list<value_type> ilist) { insert (ilist); }
+
     RB_Tree (const self &rhs)
     {
         if (rhs.root())
