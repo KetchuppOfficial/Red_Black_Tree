@@ -146,6 +146,8 @@ public:
 
     // Modifiers
 
+    void swap (self &other) { std::swap (*this, other); }
+
     std::pair<iterator, bool> insert (const key_type &key)
     {
         if (empty())
