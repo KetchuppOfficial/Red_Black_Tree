@@ -5,6 +5,7 @@
 #include <initializer_list>
 #include <memory>
 #include <vector>
+#include <functional>
 
 #include "nodes.hpp"
 #include "tree_iterator.hpp"
@@ -18,26 +19,29 @@ namespace yLab
  * 1) root_->parent points to a non-null structure of type End_Node, which has a member
  *    left_ that points back to root_ (end_node)
  */
-template <typename Key_T>
+template <typename Key_T, typename Compare = std::less<Key_T>>
 class RB_Tree final
 {
 public:
 
     using key_type = Key_T;
+    using key_compare = Compare;
     using value_type = key_type;
-    using size_type = std::size_t;
-    using difference_type = std::ptrdiff_t;
-    using reference = value_type &;
-    using const_reference = const value_type &;
-    using node_type = RB_Node<key_type>;
+    using value_compare = Compare;
     using pointer = value_type *;
     using const_pointer = const value_type *;
+    using reference = value_type &;
+    using const_reference = const value_type &;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
     using iterator = tree_iterator<key_type, node_type>;
     using const_iterator = tree_iterator<key_type, const node_type>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+    using node_type = RB_Node<key_type>;
 
 private:
 
-    using self = RB_Tree<key_type>;
     using node_ptr = node_type *;
     using const_node_ptr = const node_type *;
     using end_node_type = End_Node<node_ptr>;
@@ -61,7 +65,7 @@ public:
 
     RB_Tree (std::initializer_list<value_type> ilist) { insert (ilist); }
 
-    RB_Tree (const self &rhs)
+    RB_Tree (const RB_Tree &rhs)
     {
         if (rhs.root())
         {
@@ -104,7 +108,7 @@ public:
         }
     }
 
-    self &operator= (const self &rhs)
+    RB_Tree &operator= (const RB_Tree &rhs)
     {
         auto tmp_tree{rhs};
         std::swap (*this, tmp_tree);
@@ -112,13 +116,13 @@ public:
         return *this;
     }
 
-    RB_Tree (self &&rhs) noexcept
+    RB_Tree (RB_Tree &&rhs) noexcept
             : nodes_{std::move (rhs.node_)},
               end_node_{std::move (rhs.end_node_)},
               leftmost_{std::exchange (rhs.leftmost_, rhs.end_node())},
               rightmost_{std::exchange (rhs.rightmost_, nullptr)} {}
 
-    self &operator= (self &&rhs) noexcept
+    RB_Tree &operator= (RB_Tree &&rhs) noexcept
     {
         std::swap (nodes_, rhs.nodes_);
         std::swap (end_node_, rhs.end_node_);
@@ -147,7 +151,7 @@ public:
 
     // Modifiers
 
-    void swap (self &other) { std::swap (*this, other); }
+    void swap (RB_Tree &other) { std::swap (*this, other); }
 
     void clear ()
     {
