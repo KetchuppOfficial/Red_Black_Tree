@@ -136,18 +136,25 @@ public:
 
     // Capacity
 
-    auto size () const { return nodes_.size(); }
-    bool empty () const { return size() == 0; }
+    size_type size () const noexcept { return nodes_.size(); }
+    bool empty () const noexcept { return size() == 0; }
 
     // Iterators
 
-    auto begin () { return iterator{leftmost_}; }
-    auto begin () const { return const_iterator{leftmost_}; }
-    auto cbegin () const { return const_iterator{leftmost_}; }
+    iterator begin () noexcept { return iterator{leftmost_}; }
+    const_iterator begin () const noexcept { return const_iterator{leftmost_}; }
+    iterator end () { return iterator{end_node()}; }
+    const_iterator end () const { return const_iterator{end_node()}; }
 
-    auto end () { return iterator{end_node()}; }
-    auto end () const { return const_iterator{end_node()}; }
-    auto cend () const { return const_iterator{end_node()}; }
+    reverse_iterator rbegin () noexcept { return reverse_iterator{end()}; }
+    const_reverse_iterator rbegin () const noexcept { return const_reverse_iterator{end()}; }
+    reverse_iterator rend () noexcept { return reverse_iterator{begin()}; }
+    const_reverse_iterator rend () const noexcept { return const_reverse_iterator{begin()}; }
+
+    const_iterator cbegin () const { return begin(); }
+    const_iterator cend () const { return end(); }
+    const_reverse_iterator crbegin () const noexcept { return rbegin(); }
+    const_reverse_iterator crend () const noexcept { return rend(); }
 
     // Modifiers
 
