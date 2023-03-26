@@ -22,7 +22,6 @@ public:
 private:
 
     using node_ptr = Node_T *;
-    using self = tree_iterator;
     
     node_ptr node_;
 
@@ -34,33 +33,33 @@ public:
     reference operator* () const { return node_->key(); }
     pointer operator-> () const { return &node_->key(); }
 
-    self &operator++ ()
+    tree_iterator &operator++ ()
     {
         node_ = details::successor (node_);
         return *this;
     }
     
-    self operator++ (int)
+    tree_iterator operator++ (int)
     {
         auto tmp = *this;
         ++tmp;
         return tmp;
     }
 
-    self &operator-- ()
+    tree_iterator &operator-- ()
     {
         node_ = details::predecessor (node_);
         return *this;
     }
 
-    self operator-- (int)
+    tree_iterator operator-- (int)
     {
         auto tmp = *this;
         --tmp;
         return tmp;
     }
 
-    bool operator== (const self &rhs) const { return node_ == rhs.node_; }
+    bool operator== (const tree_iterator &rhs) const { return node_ == rhs.node_; }
 
     node_ptr base () const { return node_; }
 };
