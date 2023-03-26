@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
+
 #include "nodes.hpp"
 
 TEST (End_Node, Move_Constructor)
 {
     int x{};
-    yLab::End_Node<decltype(x) *> end_node_1{&x};
+    yLab::End_Node end_node_1{&x};
     auto end_node_2 = std::move (end_node_1);
 
     EXPECT_EQ (end_node_1.left_, nullptr);
@@ -14,10 +15,10 @@ TEST (End_Node, Move_Constructor)
 TEST (End_Node, Move_Assignment)
 {
     int x{};
-    yLab::End_Node<decltype(x) *> end_node_1{&x};
+    yLab::End_Node end_node_1{&x};
 
     int y{};
-    yLab::End_Node<decltype(y) *> end_node_2{&y};
+    yLab::End_Node end_node_2{&y};
 
     end_node_2 = std::move (end_node_1);
     EXPECT_EQ (end_node_1.left_, &y);
