@@ -362,7 +362,7 @@ public:
     #ifdef DEBUG
     
     // I see how this violates SRP but I don't know any better implementation
-    void graphic_dump (std::ostream &os) { detail::graphic_dump (os, leftmost_, end_node()); }
+    void graphic_dump (std::ostream &os) const { detail::graphic_dump (os, leftmost_, end_node()); }
 
     #endif // DEBUG
 
