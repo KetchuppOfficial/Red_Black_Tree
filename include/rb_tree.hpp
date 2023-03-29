@@ -387,10 +387,12 @@ private:
         return const_cast<RB_Tree &>(*this).find (const_cast<node_ptr>(node), key);
     }
 
-    // (parent == nullptr) ==> (key == root().key())
-    // (node != nullptr) ==> (parent != nullptr)
+    // No need for const overload as find_v2 is used only in insert
     std::pair<node_ptr, node_ptr> find_v2 (node_ptr node, const key_type &key)
     {
+        // (parent == nullptr) ==> (key == root().key())
+        // (node != nullptr) ==> (parent != nullptr)
+
         node_ptr parent = nullptr;
 
         while (node)
