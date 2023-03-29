@@ -9,7 +9,4 @@ target_link_libraries(unit_tests
 target_include_directories(unit_tests
                            PRIVATE ${INCLUDE_DIR})
 
-install(TARGETS unit_tests
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-
 gtest_discover_tests(unit_tests)
