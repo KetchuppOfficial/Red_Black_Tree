@@ -332,7 +332,7 @@ public:
 
     const_iterator find (const key_type &key) const
     {
-        return const_cast<RB_Tree &>(*this).find();
+        return const_cast<RB_Tree &>(*this).find (key);
     }
 
     iterator lower_bound (const key_type &key)
