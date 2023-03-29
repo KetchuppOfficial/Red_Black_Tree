@@ -11,6 +11,10 @@
 #include "nodes.hpp"
 #include "tree_iterator.hpp"
 
+#ifdef DEBUG
+#include "graphic_dump.hpp"
+#endif // DEBUG
+
 namespace yLab
 {
 
@@ -359,6 +363,12 @@ public:
     }
 
     bool contains (const key_type &key) const { return find (key) != end(); }
+    
+    #ifdef DEBUG
+
+    void graphic_dump (std::ostream &os) { detail::graphic_dump (os, leftmost_, end_node()); }
+
+    #endif // DEBUG
 
 private:
 

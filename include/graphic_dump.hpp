@@ -1,80 +1,75 @@
 #ifndef INCLUDE_GRAPHIC_DUMP_HPP
 #define INCLUDE_GRAPHIC_DUMP_HPP
 
-#include <fstream>
+#include <ostream>
 
 #include "rb_tree.hpp"
 
 namespace yLab
 {
 
-namespace graphic_dump
+namespace detail
 {
 
-template<typename Key_T>
-void node_dump (std::ostream &fs, typename RB_Tree<Key_T>::iterator it)
+template<typename Node_T>
+void graphic_dump (std::ostream &os, const Node_T *begin, const Node_T *end)
 {
-    auto self = it.base();
-    
-    fs << "\tnode_" << self
-        << " [style = filled, fillcolor = " << ((self->color_ == RB_Color::black) ? "green" : "red")
-        << ", label = \"" << *it << "\"];\n";
-
-    if (self->left_ == nullptr)
-        fs << "\tleft_nil_node_" << self
-            << " [style = filled, fillcolor = \"green\", label = \"nil\"];\n";
-
-    if (self->right_ == nullptr)
-        fs << "\tright_nil_node_" << self
-            << " [style = filled, fillcolor = \"green\", label = \"nil\"];\n";
-}
-
-template<typename Key_T>
-void arrow_dump (std::ostream &fs, typename RB_Tree<Key_T>::iterator it)
-{
-    auto self = it.base();
-    
-    fs << "\tnode_" << self << " -> ";
-    if (self->left_)
-        fs << "node_" << self->left_;
-    else
-        fs << "left_nil_node_" << self;
-    fs << " [color = \"blue\"];\n";
-
-    fs << "\tnode_" << self << " -> ";
-    if (self->right_)
-        fs << "node_" << self->right_;
-    else
-        fs << "right_nil_node_" << self;
-    fs << " [color = \"gold\"];\n";
+    auto node_dump = [&os](const Node_T *node)
+    {
+        using color_type = typename Node_T::color_type;
         
-    fs << "\tnode_" << self << " -> "
-       << "node_" << self->parent_ << " [color = \"dimgray\"];\n";
-}
+        os << "    node_" << node
+           << " [style = filled, fillcolor = " << ((node->color_ == color_type::black) ? "green" : "red")
+           << ", label = \"" << node->key() << "\"];\n";
 
-template<typename Key_T>
-void tree_dump (std::ostream &fs, typename RB_Tree<Key_T>::iterator begin,
-                                  typename RB_Tree<Key_T>::iterator end)
-{
-    fs << "digraph Tree\n"
+        if (node->left_ == nullptr)
+            os << "\tleft_nil_node_" << node
+               << " [style = filled, fillcolor = \"green\", label = \"nil\"];\n";
+
+        if (node->right_ == nullptr)
+            os << "\tright_nil_node_" << node
+               << " [style = filled, fillcolor = \"green\", label = \"nil\"];\n";
+    };
+
+    auto arrow_dump = [&os](const Node_T *node)
+    {
+        os << "    node_" << node << " -> ";
+        if (node->left_)
+            os << "node_" << node->left_;
+        else
+            os << "left_nil_node_" << node;
+        os << " [color = \"blue\"];\n";
+
+        os << "    node_" << node << " -> ";
+        if (node->right_)
+            os << "node_" << node->right_;
+        else
+            os << "right_nil_node_" << node;
+        os << " [color = \"gold\"];\n";
+            
+        os << "    node_" << node << " -> "
+           << "node_" << node->parent_ << " [color = \"dimgray\"];\n";
+    };
+
+    os << "digraph Tree\n"
           "{\n"
-          "\trankdir = TB;\n"
-          "\tnode [style = rounded];\n\n";
+          "    rankdir = TB;\n"
+          "    node [style = rounded];\n\n";
 
-    fs << "\tnode_" << end.base()
+    os << "    node_" << end
        << " [style = filled, fillcolor = yellow, label = \"end node\"];\n";
 
-    for (auto it = begin; it != end; ++it)
-        node_dump<Key_T> (fs, it);
+    for (auto node_ptr = begin; node_ptr != end; node_ptr = detail::successor (node_ptr))
+        node_dump (node_ptr);
 
-    fs << std::endl;
-    for (auto it = begin; it != end; ++it)
-        arrow_dump<Key_T> (fs, it);
+    os << std::endl;
+    for (auto node_ptr = begin; node_ptr != end; node_ptr = detail::successor (node_ptr))
+        arrow_dump (node_ptr);
 
-    fs << "\tnode_" << end.base() << " -> node_" << end.base()->left_ << " [color = \"blue\"];\n}\n";
+    os << "    node_" << end << " -> node_" << end->left_ << " [color = \"blue\"];\n}\n";
 }
 
-} // namespace graphic_dump
+} // namespace detail
 
 } // namespace yLab
 
