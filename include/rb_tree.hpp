@@ -21,43 +21,37 @@ namespace yLab
 namespace detail
 {
 
-template <typename Node_T>
-auto fixup_subroutine_1 (Node_T *new_node, Node_T *uncle, const Node_T *root)
-{
-    using color_type = typename Node_T::color_type;
-
-    new_node = new_node->parent_;
-    new_node->color_ = color_type::black;
-
-    new_node = new_node->parent_;
-    if (new_node != root)
-        new_node->color_ = color_type::red;
-
-    uncle->color_ = color_type::black;
-
-    return new_node;
-}
-
-template <typename Node_T>
-auto fixup_subroutine_2 (Node_T *new_node)
-{
-    using color_type = typename Node_T::color_type;
-    
-    new_node = new_node->parent_;
-    new_node->color_ = color_type::black;
-
-    new_node = new_node->parent_;
-    new_node->color_ = color_type::red;
-
-    return new_node;
-}
-
 // RB_invatiant (end_node_->left_) == true
 // But end_node_->left_ may be different than the value passed ad root
 template <typename Node_T>
 void rb_insert_fixup (const Node_T *root, Node_T *new_node)
 {       
     using color_type = typename Node_T::color_type;
+
+    auto fixup_subroutine_1 = [](Node_T *new_node, Node_T *uncle, const Node_T *root)
+    {
+        new_node = new_node->parent_;
+        new_node->color_ = color_type::black;
+
+        new_node = new_node->parent_;
+        if (new_node != root)
+            new_node->color_ = color_type::red;
+
+        uncle->color_ = color_type::black;
+
+        return new_node;
+    };
+
+    auto fixup_subroutine_2 = [](Node_T *new_node)
+    {        
+        new_node = new_node->parent_;
+        new_node->color_ = color_type::black;
+
+        new_node = new_node->parent_;
+        new_node->color_ = color_type::red;
+
+        return new_node;
+    };
     
     assert (root && new_node);
     
