@@ -17,8 +17,8 @@ public:
     using iterator_category = typename std::bidirectional_iterator_tag;
     using difference_type = ptrdiff_t;
     using value_type = Key_T;
-    using reference = const Key_T&;
-    using pointer = const Key_T*;
+    using reference = const Key_T &;
+    using pointer = const Key_T *;
 
 private:
 
@@ -61,8 +61,6 @@ public:
     }
 
     bool operator== (const tree_iterator &rhs) const { return node_ == rhs.node_; }
-
-    node_ptr base () const { return node_; }
 };
 
 } // namespace yLab
