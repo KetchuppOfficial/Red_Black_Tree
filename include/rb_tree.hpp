@@ -166,17 +166,17 @@ public:
     explicit RB_Tree (const key_compare &comp) : comp_{comp} {}
 
     template <std::input_iterator it>
-    RB_Tree (it first, it last, const key_compare &comp = key_compare{})
+    RB_Tree (it first, it last, const key_compare &comp = key_compare{}) : comp_{comp}
     {
         insert (first, last);
     }
 
-    RB_Tree (std::initializer_list<value_type> ilist, const key_compare &comp = key_compare{})
+    RB_Tree (std::initializer_list<value_type> ilist, const key_compare &comp = key_compare{}) : comp_{comp}
     {
         insert (ilist);
     }
 
-    RB_Tree (const RB_Tree &rhs)
+    RB_Tree (const RB_Tree &rhs) : comp_{rhs.comp_}
     {
         if (rhs.root())
         {
@@ -231,7 +231,8 @@ public:
             : nodes_{std::move (rhs.node_)},
               end_node_{std::move (rhs.end_node_)},
               leftmost_{std::exchange (rhs.leftmost_, rhs.end_node())},
-              rightmost_{std::exchange (rhs.rightmost_, nullptr)} {}
+              rightmost_{std::exchange (rhs.rightmost_, nullptr)},
+              comp_{std::move (rhs.comp_)} {}
 
     RB_Tree &operator= (RB_Tree &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_compare> &&
                                                  std::is_nothrow_move_assignable_v<key_compare>)
