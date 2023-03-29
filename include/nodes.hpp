@@ -3,6 +3,7 @@
 
 #include <type_traits>
 #include <utility>
+#include <cassert>
 
 namespace yLab
 {
