@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "details.hpp"
+#include "nodes.hpp"
 
 /*
  *   |               |
@@ -11,7 +11,7 @@
  */
 TEST (Details, Left_Tree_Rotation)
 {
-    yLab::RB_Node<int> root{1, yLab::RB_Color::black};
+    yLab::RB_Node<int> root{1, yLab::RB_Color::red};
     yLab::RB_Node<int> x{2, yLab::RB_Color::red};
     yLab::RB_Node<int> y{3, yLab::RB_Color::red};
     yLab::RB_Node<int> a{4, yLab::RB_Color::red};
@@ -28,7 +28,7 @@ TEST (Details, Left_Tree_Rotation)
     b.parent_ = &y;
     c.parent_ = &y;
 
-    yLab::details::left_rotate (&x);
+    yLab::detail::left_rotate (&x);
 
     EXPECT_EQ (y.parent_, &root);
     EXPECT_EQ (y.left_,   &x);
@@ -63,6 +63,7 @@ TEST (Details, Right_Tree_Rotation)
     yLab::RB_Node<int> a{4, yLab::RB_Color::red};
     yLab::RB_Node<int> b{5, yLab::RB_Color::red};
     yLab::RB_Node<int> c{6, yLab::RB_Color::red};
+    
 
     y.parent_ = &root;
     y.left_   = &x;
@@ -74,7 +75,7 @@ TEST (Details, Right_Tree_Rotation)
     b.parent_ = &x;
     c.parent_ = &y;
 
-    yLab::details::right_rotate (&y);
+    yLab::detail::right_rotate (&y);
 
     EXPECT_EQ (x.parent_, &root);
     EXPECT_EQ (x.left_,   &a);

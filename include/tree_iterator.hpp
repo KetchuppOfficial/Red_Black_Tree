@@ -3,12 +3,13 @@
 
 #include <iterator>
 
-#include "details.hpp"
+#include "nodes.hpp"
 
 namespace yLab
 {
 
 template <typename Key_T, typename Node_T>
+requires Binary_Tree_Node<Node_T>
 class tree_iterator final
 {
 public:
@@ -28,14 +29,14 @@ private:
 public:
 
     tree_iterator () = default;
-    tree_iterator (node_ptr node) : node_{node} {}
+    tree_iterator (node_ptr node) noexcept : node_{node} {}
 
     reference operator* () const { return node_->key(); }
     pointer operator-> () const { return &node_->key(); }
 
     tree_iterator &operator++ ()
     {
-        node_ = details::successor (node_);
+        node_ = detail::successor (node_);
         return *this;
     }
     
@@ -48,7 +49,7 @@ public:
 
     tree_iterator &operator-- ()
     {
-        node_ = details::predecessor (node_);
+        node_ = detail::predecessor (node_);
         return *this;
     }
 
