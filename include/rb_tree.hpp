@@ -297,7 +297,7 @@ public:
     using difference_type = std::ptrdiff_t;
     using node_type = Node_T;
     using iterator = tree_iterator<key_type, node_type>;
-    using const_iterator = tree_iterator<const key_type, const node_type>;
+    using const_iterator = tree_iterator<key_type, const node_type>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -513,7 +513,8 @@ public:
 
     const_iterator find (const key_type &key) const
     {
-        return const_cast<RB_Tree &>(*this).find (key);
+        auto node = find (root(), key);
+        return (node) ? iterator{node} : end();
     }
 
     iterator lower_bound (const key_type &key)
@@ -524,7 +525,8 @@ public:
 
     const_iterator lower_bound (const key_type &key) const
     {
-        return const_cast<RB_Tree &>(*this).lower_bound (key);
+        auto node = lower_bound (root(), key);
+        return (node) ? const_iterator{node} : end();
     }
 
     iterator upper_bound (const key_type &key)
@@ -535,7 +537,8 @@ public:
 
     const_iterator upper_bound (const key_type &key) const
     {
-        return const_cast<RB_Tree &>(*this).upper_bound (key);
+        auto node = upper_bound (root(), key);
+        return (node) ? const_iterator{node} : end();
     }
 
     bool contains (const key_type &key) const { return find (key) != end(); }
@@ -550,7 +553,10 @@ public:
 private:
 
     node_ptr end_node () noexcept { return static_cast<node_ptr>(std::addressof (end_node_)); }
-    const_node_ptr end_node () const noexcept { return static_cast<node_ptr>(std::addressof (end_node_)); }
+    const_node_ptr end_node () const noexcept
+    {
+        return static_cast<const_node_ptr>(std::addressof (end_node_));
+    }
 
     node_ptr &root () noexcept { return end_node()->left_; }
     const_node_ptr root () const noexcept { return end_node()->left_; }
