@@ -303,7 +303,7 @@ public:
 
 private:
 
-    using color_type = node_type::color_type;
+    using color_type = typename node_type::color_type;
     using node_ptr = node_type *;
     using const_node_ptr = const node_type *;
     using end_node_type = End_Node<node_type>;
