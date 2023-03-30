@@ -3,7 +3,6 @@
 
 #include <utility>
 #include <initializer_list>
-#include <memory>
 #include <unordered_set>
 #include <functional>
 #include <type_traits>
@@ -309,7 +308,7 @@ private:
     using const_node_ptr = const node_type *;
     using end_node_type = End_Node<node_type>;
 
-    std::unordered_set<node_ptr> nodes_;
+    std::unordered_set<node_ptr> nodes_; // O(1) is needed
     end_node_type end_node_{};
 
     node_ptr leftmost_  = end_node();
@@ -497,7 +496,7 @@ public:
             rightmost_ = detail::predecessor (node);
 
         root() = detail::erase<node_type, color_type> (root(), node);
-        
+
         nodes_.erase (node);
         delete node;
 
@@ -583,7 +582,7 @@ private:
                 break;
             
             parent = node;
-            node = (comp_(key, node->key())) ? node->left_ : node = node->right_;
+            node = (comp_(key, node->key())) ? node->left_ : node->right_;
         }
 
         return std::make_pair (node, parent);
