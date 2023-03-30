@@ -111,6 +111,56 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
     }
 }
 
+template<typename Node_T>
+void erase (Node_T *root, Node_T *z) noexcept
+{
+    auto y = (z->left_ == nullptr || z->right_ == nullptr) ? z : successor (z);
+    auto x = (y->left_ == nullptr) ? y->right_ : y->left_;
+    auto w = static_cast<Node_T *>(nullptr);
+
+    if (x != nullptr)
+        x->parent_ = y->parent_;
+    
+    if (is_left_child (y))
+    {
+        y->parent_->left_ = x;
+        
+        if (y != root)
+            w = y->parent_->right_;
+        else
+            root = x;
+    }
+    else
+    {
+        y->parent_->right_ = x;
+        w = y->parent_->left_;
+    }
+
+    auto y_orig_color = y->color_;
+
+    if (y != z)
+    {
+        y->parent_ = z->parent_;
+
+        if (is_left_child (z))
+            y->parent_->left_ = y;
+        else
+            y->parent_->right_ = y;
+
+        y->left_ = z->left_;
+        y->left_->parent_ = y;
+        y->right_ = z->right_;
+
+        if (y->right_ != nullptr)
+            y->right_->parent_ = y;
+
+        y->color_ = z->color_;
+
+        if (root == z)
+            root == y;
+    }
+}
+
 } // namespace detail
 
 /*
@@ -326,7 +376,7 @@ public:
     {
         auto node = pos.node_;
         ++pos;
-        erase (node);
+        detail::erase (root(), node);
         return pos;
     }
 
@@ -384,8 +434,8 @@ private:
 
     node_ptr find (node_ptr node, const key_type &key)
     {
-        while (node && !key_comp() (node->key(), key))
-            node = (key < node->key()) ? node->left_ : node->right_;
+        while (node && (key_comp() (key, node->key()) || key_comp() (node->key(), key)))
+            node = key_comp() (key, node->key()) ? node->left_ : node->right_;
 
         return node;
     }
@@ -514,46 +564,7 @@ private:
         }
     }
 
-    void erase (node_ptr z)
-    {
-        node_ptr x = nullptr;
-        auto y_orig_color = z->color_;
-
-        if (z->left_ == nullptr)
-        {
-            x = z->right_;
-            transplant (z, x);
-        }
-        else if (z->right_ == nullptr)
-        {
-            x = z->left_;
-            transplant (z, x);
-        }
-        else
-        {
-            node_ptr y = detail::minimum (z->right_);
-            y_orig_color = y->color_;
-            x = y->right_;
-
-            if (y->parent_ == z)
-                x->parent_ = y;
-            else
-            {
-                transplant (y, y->right_);
-                y->right_ = z->right_;
-                y->right_->parent_ = y;
-            }
-
-            transplant (z, y);
-            y->left_ = z->left_;
-            y->left_->parent_ = y;
-            y->color_ = z->color_;
-        }
-
-        if (y_orig_color == color_type::black)
-            rb_erase_fixup (x);
-    }
-
+    #if 0
     void rb_erase_fixup (node_ptr x)
     {
         while (x != root() && x->color_ == color_type::black)
@@ -647,6 +658,7 @@ private:
 
         v->parent_ = up;
     }
+    #endif
 };
 
 } // namespace yLab
