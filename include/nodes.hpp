@@ -296,7 +296,6 @@ const Node_T *predecessor (const Node_T *node) noexcept
     if (node->left_)
         return maximum (node->left_);
 
-    auto parent = node->parent_;
     while (is_left_child (node))
         node = node->parent_;
 
