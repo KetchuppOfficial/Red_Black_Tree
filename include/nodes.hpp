@@ -306,7 +306,7 @@ const Node_T *predecessor (const Node_T *node) noexcept
 template<typename Node_T>
 Node_T *predecessor (Node_T *node) noexcept
 {
-    return const_cast<Node_T *>(prececessor (static_cast<const Node_T *>(node)));
+    return const_cast<Node_T *>(predecessor (static_cast<const Node_T *>(node)));
 }
 
 // Sometimes root_ can be affected. So it has to be changed if necessary
