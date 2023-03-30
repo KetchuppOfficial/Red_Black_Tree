@@ -29,7 +29,7 @@ private:
 public:
 
     tree_iterator () = default;
-    tree_iterator (node_ptr node) noexcept : node_{node} {}
+    explicit tree_iterator (node_ptr node) noexcept : node_{node} {}
 
     reference operator* () const { return node_->key(); }
     pointer operator-> () const { return &node_->key(); }
@@ -61,6 +61,8 @@ public:
     }
 
     bool operator== (const tree_iterator &rhs) const { return node_ == rhs.node_; }
+
+    template<typename, typename, typename> friend class RB_Tree;
 };
 
 } // namespace yLab
