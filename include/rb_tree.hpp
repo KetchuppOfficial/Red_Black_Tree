@@ -434,8 +434,8 @@ private:
 
     node_ptr find (node_ptr node, const key_type &key)
     {
-        while (node && (key_comp() (key, node->key()) || key_comp() (node->key(), key)))
-            node = key_comp() (key, node->key()) ? node->left_ : node->right_;
+        while (node && (comp_(key, node->key()) || comp_(node->key(), key)))
+            node = comp_(key, node->key()) ? node->left_ : node->right_;
 
         return node;
     }
@@ -455,11 +455,11 @@ private:
 
         while (node)
         {
-            if (!key_comp() (key, node->key()) && !key_comp() (node->key(), key))
+            if (!comp_(key, node->key()) && !comp_(node->key(), key))
                 break;
             
             parent = node;
-            node = (key_comp() (key, node->key())) ? node->left_ : node = node->right_;
+            node = (comp_(key, node->key())) ? node->left_ : node = node->right_;
         }
 
         return std::make_pair (node, parent);
@@ -471,7 +471,7 @@ private:
         node_ptr result = nullptr;
         while (node)
         {
-            if (!key_comp() (node->key(), key))
+            if (!comp_(node->key(), key))
             {
                 result = node;
                 node = node->left_;
@@ -494,7 +494,7 @@ private:
         node_ptr result = nullptr;
         while (node)
         {
-            if (key_comp() (key, node->key()))
+            if (comp_(key, node->key()))
             {
                 result = node;
                 node = node->left_;
