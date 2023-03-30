@@ -4,7 +4,7 @@
 #include <utility>
 #include <initializer_list>
 #include <memory>
-#include <vector>
+#include <unordered_set>
 #include <functional>
 #include <type_traits>
 
@@ -111,14 +111,14 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
     }
 }
 
-template<typename Node_T>
-void erase (Node_T *root, Node_T *z) noexcept
+template<typename Node_T, typename Color_T>
+Node_T *erase (Node_T *root, Node_T *z) noexcept
 {
     auto y = (z->left_ == nullptr || z->right_ == nullptr) ? z : successor (z);
     auto x = (y->left_ == nullptr) ? y->right_ : y->left_;
     auto w = static_cast<Node_T *>(nullptr);
 
-    if (x != nullptr)
+    if (x)
         x->parent_ = y->parent_;
     
     if (is_left_child (y))
@@ -151,14 +151,126 @@ void erase (Node_T *root, Node_T *z) noexcept
         y->left_->parent_ = y;
         y->right_ = z->right_;
 
-        if (y->right_ != nullptr)
+        if (y->right_)
             y->right_->parent_ = y;
 
         y->color_ = z->color_;
 
-        if (root == z)
-            root == y;
+        if (z == root)
+            root = y;
     }
+
+    if (y_orig_color == Color_T::black && root)
+        root = rb_erase_fixup<Node_T, Color_T> (root, x, w);
+
+    return root;
+}
+
+template<typename Node_T, typename Color_T>
+Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
+{
+    using color_type = Color_T;
+    
+    if (x)
+        x->color_ = Color_T::black;
+    else    
+    {
+        while (true)
+        {
+            if (!is_left_child (w))
+            {
+                if (w->color_ == color_type::red)
+                {
+                    w->color_ = color_type::black;
+                    w->parent_->color_ = color_type::red;
+                    detail::left_rotate (w->parent_);
+
+                    if (root == w->left_)
+                        root = w;
+
+                    w = w->left_->right_;
+                }
+
+                if ((w->left_  == nullptr || w->left_->color_  == color_type::black) &&
+                    (w->right_ == nullptr || w->right_->color_ == color_type::black))
+                {
+                    w->color_ = color_type::red;
+                    x = w->parent_;
+
+                    if (x == root || x->color_ == color_type::red)
+                    {
+                        x->color_ = color_type::black;
+                        break;
+                    }
+
+                    w = is_left_child (x) ? x->parent_->right_ : x->parent_->left_;
+                }
+                else
+                {
+                    if (w->right_ == nullptr || w->right_->color_ == color_type::black)
+                    {
+                        w->left_->color_ = color_type::black;
+                        w->color_ = color_type::red;
+                        detail::right_rotate (w);
+                        w = w->parent_;
+                    }
+
+                    w->color_ = w->parent_->color_;
+                    w->parent_->color_ = color_type::black;
+                    w->right_->color_ = color_type::black;
+                    detail::left_rotate (w->parent_);
+                    break;
+                }
+            }
+            else
+            {
+                if (w->color_ == color_type::red)
+                {
+                    w->color_ = color_type::black;
+                    w->parent_->color_ = color_type::red;
+                    detail::right_rotate (w->parent_);
+
+                    if (root == w->right_)
+                        root = w;
+
+                    w = w->right_->left_;
+                }
+
+                if ((w->left_  == nullptr || w->left_->color_  == color_type::black) &&
+                    (w->right_ == nullptr || w->right_->color_ == color_type::black))
+                {
+                    w->color_ = color_type::red;
+                    x = w->parent_;
+
+                    if (x == root || x->color_ == color_type::red)
+                    {
+                        x->color_ = color_type::black;
+                        break;
+                    }
+
+                    w = is_left_child (x) ? x->parent_->left_ : x->parent_->right_;
+                }
+                else
+                {
+                    if (w->left_ == nullptr || w->left_->color_ == color_type::black)
+                    {
+                        w->right_->color_ = color_type::black;
+                        w->color_ = color_type::red;
+                        detail::left_rotate (w);
+                        w = w->parent_;
+                    }
+
+                    w->color_ = w->parent_->color_;
+                    w->parent_->color_ = color_type::black;
+                    w->left_->color_ = color_type::black;
+                    detail::right_rotate (w->parent_);
+                    break;
+                }
+            }
+        }
+    }
+
+    return root;
 }
 
 } // namespace detail
@@ -196,13 +308,9 @@ private:
     using node_ptr = node_type *;
     using const_node_ptr = const node_type *;
     using end_node_type = End_Node<node_type>;
-    using end_node_ptr = end_node_type *;
-    using u_node_ptr = std::unique_ptr<node_type>;
-    using u_end_node_ptr = std::unique_ptr<end_node_type>;
 
-    std::vector<u_node_ptr> nodes_;
-
-    u_end_node_ptr end_node_ = std::make_unique<end_node_type>();
+    std::unordered_set<node_ptr> nodes_;
+    end_node_type end_node_{};
 
     node_ptr leftmost_  = end_node();
     node_ptr rightmost_ = nullptr;
@@ -221,7 +329,8 @@ public:
         insert (first, last);
     }
 
-    RB_Tree (std::initializer_list<value_type> ilist, const key_compare &comp = key_compare{}) : comp_{comp}
+    RB_Tree (std::initializer_list<value_type> ilist, const key_compare &comp = key_compare{}) 
+            : comp_{comp}
     {
         insert (ilist);
     }
@@ -231,11 +340,11 @@ public:
         if (rhs.root())
         {
             auto rhs_node = rhs.root();
+            auto node = allocate_node (rhs_node->key(), rhs_node->color_);
 
-            root() = allocate_node (rhs_node->key(), rhs_node->color_);
+            root() = node;
             root()->parent_ = end_node();
 
-            node_ptr node = root();
             while (rhs_node != rhs.end_node())
             {
                 if (rhs_node->left_ && node->left_ == nullptr)
@@ -296,7 +405,11 @@ public:
         return *this;
     }
 
-    ~RB_Tree () = default;
+    ~RB_Tree ()
+    {
+        for (auto &&node : nodes_)
+            delete node;
+    }
 
     // Observers
 
@@ -376,7 +489,18 @@ public:
     {
         auto node = pos.node_;
         ++pos;
-        detail::erase (root(), node);
+
+        if (node == leftmost_)
+            leftmost_ = pos.node_;
+
+        if (node == rightmost_)
+            rightmost_ = detail::predecessor (node);
+
+        root() = detail::erase<node_type, color_type> (root(), node);
+        
+        nodes_.erase (node);
+        delete node;
+
         return pos;
     }
 
@@ -426,8 +550,8 @@ public:
 
 private:
 
-    node_ptr end_node () noexcept { return static_cast<node_ptr>(end_node_.get()); }
-    const_node_ptr end_node () const noexcept { return static_cast<node_ptr>(end_node_.get()); }
+    node_ptr end_node () noexcept { return static_cast<node_ptr>(std::addressof (end_node_)); }
+    const_node_ptr end_node () const noexcept { return static_cast<node_ptr>(std::addressof (end_node_)); }
 
     node_ptr &root () noexcept { return end_node()->left_; }
     const_node_ptr root () const noexcept { return end_node()->left_; }
@@ -513,10 +637,10 @@ private:
 
     node_ptr allocate_node (const key_type &key, const color_type color)
     {
-        u_node_ptr new_node {new node_type{key, color}};
-        nodes_.push_back (std::move (new_node));
+        auto new_node = new node_type{key, color};
+        nodes_.insert (new_node);
 
-        return nodes_.back().get();
+        return new_node;
     }
 
     node_ptr insert_root (const key_type &key)
@@ -563,102 +687,6 @@ private:
                 insert_hint_unique (parent, key);
         }
     }
-
-    #if 0
-    void rb_erase_fixup (node_ptr x)
-    {
-        while (x != root() && x->color_ == color_type::black)
-        {
-            if (detail::is_left_child (x))
-            {
-                auto w = x->parent_->right_;
-                
-                if (w->color_ == color_type::red)
-                {
-                    w->color_ = color_type::black;
-                    x->parent_->color_ = color_type::red;
-                    detail::left_rotate (x->parent_);
-                    w = x->parent_->right_;
-                }
-
-                if (w->left_->color_ == color_type::black &&
-                    w->right_->color_ == color_type::black)
-                {
-                    w->color_ = color_type::red;
-                    x = x->parent_;
-                }
-                else
-                {
-                    if (w->right_->color_ == color_type::black)
-                    {
-                        w->left_->color_ = color_type::black;
-                        w->color_ = color_type::red;
-                        detail::right_rotate (w);
-                        w = x->parent_->right_;
-                    }
-
-                    w->color_ = x->parent_->color_;
-                    x->parent_->color_ = color_type::black;
-                    w->right_->color_ = color_type::black;
-                    detail::left_rotate (x->parent_);
-                    x = root();
-                }
-            }
-            else
-            {
-                auto w = x->parent_->left_;
-                
-                if (w->color_ == color_type::red)
-                {
-                    w->color_ = color_type::black;
-                    x->parent_->color_ = color_type::red;
-                    detail::left_rotate (x->parent_);
-                    w = x->parent_->left_;
-                }
-
-                if (w->left_->color_ == color_type::black &&
-                    w->right_->color_ == color_type::black)
-                {
-                    w->color_ = color_type::red;
-                    x = x->parent_;
-                }
-                else
-                {
-                    if (w->left_->color_ == color_type::black)
-                    {
-                        w->right_->color_ = color_type::black;
-                        w->color_ = color_type::red;
-                        detail::right_rotate (w);
-                        w = x->parent_->left_;
-                    }
-
-                    w->color_ = x->parent_->color_;
-                    x->parent_->color_ = color_type::black;
-                    w->left_->color_ = color_type::black;
-                    detail::left_rotate (x->parent_);
-                    x = root();
-                }
-            }
-        }
-
-        x->color_ = color_type::black;
-    }
-
-    // Replaces subtree rooted at node U with the subtree rooted at node V
-    void transplant (node_ptr u, node_ptr v)
-    {
-        node_ptr up = u->parent_;
-        
-        if (up == end_node())
-            root() = v;
-        else if (detail::is_left_child (u))
-            up->left_ = v;
-        else
-            up->right_ = v;
-
-        v->parent_ = up;
-    }
-    #endif
 };
 
 } // namespace yLab
