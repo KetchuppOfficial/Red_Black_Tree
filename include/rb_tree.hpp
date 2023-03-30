@@ -135,8 +135,8 @@ public:
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
     using node_type = Node_T;
-    using iterator = tree_iterator<key_type, const node_type>;
-    using const_iterator = iterator;
+    using iterator = tree_iterator<key_type, node_type>;
+    using const_iterator = tree_iterator<const key_type, const node_type>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -322,12 +322,20 @@ public:
             insert_unique (*it);
     }
 
+    iterator erase (iterator pos)
+    {
+        auto node = pos.node_;
+        ++pos;
+        erase (node);
+        return pos;
+    }
+
     // Lookup
 
     iterator find (const key_type &key)
     {
         auto node = find (root(), key);
-        return (node) ? iterator{node} : cend();
+        return (node) ? iterator{node} : end();
     }
 
     const_iterator find (const key_type &key) const
@@ -338,7 +346,7 @@ public:
     iterator lower_bound (const key_type &key)
     {
         auto node = lower_bound (root(), key);
-        return (node) ? iterator{node} : cend();
+        return (node) ? iterator{node} : end();
     }
 
     const_iterator lower_bound (const key_type &key) const
@@ -349,7 +357,7 @@ public:
     iterator upper_bound (const key_type &key)
     {
         auto node = upper_bound (root(), key);
-        return (node) ? iterator{node} : cend();
+        return (node) ? iterator{node} : end();
     }
 
     const_iterator upper_bound (const key_type &key) const
@@ -358,7 +366,7 @@ public:
     }
 
     bool contains (const key_type &key) const { return find (key) != end(); }
-    
+
     #ifdef DEBUG
     
     // I see how this violates SRP but I don't know any better implementation
@@ -506,20 +514,139 @@ private:
         }
     }
 
-#if 0
+    void erase (node_ptr z)
+    {
+        node_ptr x = nullptr;
+        auto y_orig_color = z->color_;
+
+        if (z->left_ == nullptr)
+        {
+            x = z->right_;
+            transplant (z, x);
+        }
+        else if (z->right_ == nullptr)
+        {
+            x = z->left_;
+            transplant (z, x);
+        }
+        else
+        {
+            node_ptr y = detail::minimum (z->right_);
+            y_orig_color = y->color_;
+            x = y->right_;
+
+            if (y->parent_ == z)
+                x->parent_ = y;
+            else
+            {
+                transplant (y, y->right_);
+                y->right_ = z->right_;
+                y->right_->parent_ = y;
+            }
+
+            transplant (z, y);
+            y->left_ = z->left_;
+            y->left_->parent_ = y;
+            y->color_ = z->color_;
+        }
+
+        if (y_orig_color == color_type::black)
+            rb_erase_fixup (x);
+    }
+
+    void rb_erase_fixup (node_ptr x)
+    {
+        while (x != root() && x->color_ == color_type::black)
+        {
+            if (detail::is_left_child (x))
+            {
+                auto w = x->parent_->right_;
+                
+                if (w->color_ == color_type::red)
+                {
+                    w->color_ = color_type::black;
+                    x->parent_->color_ = color_type::red;
+                    detail::left_rotate (x->parent_);
+                    w = x->parent_->right_;
+                }
+
+                if (w->left_->color_ == color_type::black &&
+                    w->right_->color_ == color_type::black)
+                {
+                    w->color_ = color_type::red;
+                    x = x->parent_;
+                }
+                else
+                {
+                    if (w->right_->color_ == color_type::black)
+                    {
+                        w->left_->color_ = color_type::black;
+                        w->color_ = color_type::red;
+                        detail::right_rotate (w);
+                        w = x->parent_->right_;
+                    }
+
+                    w->color_ = x->parent_->color_;
+                    x->parent_->color_ = color_type::black;
+                    w->right_->color_ = color_type::black;
+                    detail::left_rotate (x->parent_);
+                    x = root();
+                }
+            }
+            else
+            {
+                auto w = x->parent_->left_;
+                
+                if (w->color_ == color_type::red)
+                {
+                    w->color_ = color_type::black;
+                    x->parent_->color_ = color_type::red;
+                    detail::left_rotate (x->parent_);
+                    w = x->parent_->left_;
+                }
+
+                if (w->left_->color_ == color_type::black &&
+                    w->right_->color_ == color_type::black)
+                {
+                    w->color_ = color_type::red;
+                    x = x->parent_;
+                }
+                else
+                {
+                    if (w->left_->color_ == color_type::black)
+                    {
+                        w->right_->color_ = color_type::black;
+                        w->color_ = color_type::red;
+                        detail::right_rotate (w);
+                        w = x->parent_->left_;
+                    }
+
+                    w->color_ = x->parent_->color_;
+                    x->parent_->color_ = color_type::black;
+                    w->left_->color_ = color_type::black;
+                    detail::left_rotate (x->parent_);
+                    x = root();
+                }
+            }
+        }
+
+        x->color_ = color_type::black;
+    }
+
     // Replaces subtree rooted at node U with the subtree rooted at node V
     void transplant (node_ptr u, node_ptr v)
     {
-        if (u->parent_ == end_node())
+        node_ptr up = u->parent_;
+        
+        if (up == end_node())
             root() = v;
         else if (detail::is_left_child (u))
-            u->parent_->left_ = v;
+            up->left_ = v;
         else
-            u->parent_->right_ = v;
+            up->right_ = v;
 
-        v->parent_ = u->parent_;
+        v->parent_ = up;
     }
-#endif
 };
 
 } // namespace yLab
