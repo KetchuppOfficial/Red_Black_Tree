@@ -176,7 +176,7 @@ public:
     node_ptr parent_ = nullptr;
 
     color_type color_;
-    size_type subtree_h_{};
+    size_type subtree_size_{};
 
 private:
 
@@ -194,7 +194,7 @@ public:
               right_{std::exchange (rhs.right, nullptr)},
               parent_{std::exchange (rhs.parent_, nullptr)},
               color_{std::move (rhs.color_)},
-              subtree_h_{std::exchange (rhs.subtree_h_, 0)},
+              subtree_size_{std::exchange (rhs.subtree_size_, 0)},
               key_{std::move (rhs.key_)} {}
 
     Tree_Node &operator= (Tree_Node &rhs) noexcept (std::is_nothrow_move_constructible_v<key_type> &&
@@ -204,7 +204,7 @@ public:
         std::swap (right_, rhs.right_);
         std::swap (parent_, rhs.right_);
         std::swap (color_, rhs.color_);
-        std::swap (subtree_h_, rhs.subtree_h_);
+        std::swap (subtree_size_, rhs.subtree_size_);
         std::swap (key_, rhs.key_);
         
         return *this;
@@ -352,6 +352,44 @@ void right_rotate (Node_T *x)
 
     y->right_ = x;
     x->parent_ = y;
+}
+
+template<typename Key_T>
+const Advanced_RB_Node<Key_T> *kth_smallest (const Advanced_RB_Node<Key_T> *root, 
+                                             typename Advanced_RB_Node<Key_T>::size_type k) noexcept
+{
+    if (k > root->subtree_size_)
+        return nullptr;
+    
+    auto left = root->left_;
+    auto r = left ? left->size_ + 1 : root->size_;
+    // (r - 1) - number of nodes in the child subtree of root where kth smallest key locates
+
+    while (k != r)
+    {
+        if (k < r)
+            root = left ? left : root->right_;
+        else
+        {
+            root = root->right_;
+            k = k - r;
+        }
+
+        left = root->left_;
+        r = left ? left->size_ + 1 : root->size_;
+    }
+
+    return root;
+}
+
+template<typename Key_T>
+Advanced_RB_Node<Key_T> *kth_smallest (Advanced_RB_Node<Key_T> *root, 
+                                       typename Advanced_RB_Node<Key_T>::size_type k) noexcept
+{
+    using node_ptr = Advanced_RB_Node<Key_T> *;
+    using const_node_ptr = const Advanced_RB_Node<Key_T> *;
+
+    return const_cast<node_ptr>(kth_smallest (static_cast<const_node_ptr>(root), k));
 }
 
 } // namespace detail
