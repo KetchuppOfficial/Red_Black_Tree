@@ -629,7 +629,7 @@ private:
         auto new_node = new node_type {key, color_type::red};
         new_node->parent_ = parent;
 
-        if (key < parent->key())
+        if (comp_(key, parent->key()))
             parent->left_ = new_node;
         else
             parent->right_ = new_node;
