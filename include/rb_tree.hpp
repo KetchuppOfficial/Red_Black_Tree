@@ -3,7 +3,6 @@
 
 #include <utility>
 #include <initializer_list>
-#include <unordered_set>
 #include <functional>
 #include <type_traits>
 
@@ -308,13 +307,14 @@ private:
     using const_node_ptr = const node_type *;
     using end_node_type = End_Node<node_type>;
 
-    std::unordered_set<node_ptr> nodes_; // O(1) is needed
     end_node_type end_node_{};
 
     node_ptr leftmost_  = end_node();
     node_ptr rightmost_ = nullptr;
 
     key_compare comp_;
+
+    size_type size_ = 0;
 
 public:
 
@@ -336,43 +336,16 @@ public:
 
     RB_Tree (const RB_Tree &rhs) : comp_{rhs.comp_}
     {
-        if (rhs.root())
+        for (auto &&key : rhs)
         {
-            auto rhs_node = rhs.root();
-            auto node = allocate_node (rhs_node->key(), rhs_node->color_);
-
-            root() = node;
-            root()->parent_ = end_node();
-
-            while (rhs_node != rhs.end_node())
+            try
             {
-                if (rhs_node->left_ && node->left_ == nullptr)
-                {
-                    rhs_node = rhs_node->left_;
-
-                    node->left_ = allocate_node (rhs_node->key(), rhs_node->color_);
-                    node->left_->parent_ = node;
-                    node = node->left_;
-
-                    if (rhs_node == rhs.leftmost_)
-                        leftmost_ = node;
-                }
-                else if (rhs_node->right_ && node->right_ == nullptr)
-                {
-                    rhs_node = rhs_node->right_;
-
-                    node->right_ = allocate_node (rhs_node->key(), rhs_node->color_);
-                    node->right_->parent_ = node;
-                    node = node->right_;
-
-                    if (rhs_node == rhs.rightmost_)
-                        rightmost_ = node;
-                }
-                else
-                {
-                    rhs_node = rhs_node->parent_;
-                    node = node->parent_;
-                }
+                insert (key);
+            }
+            catch (...)
+            {
+                clean_up (root());
+                throw;
             }
         }
     }
@@ -386,28 +359,27 @@ public:
     }
 
     RB_Tree (RB_Tree &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_compare>)
-            : nodes_{std::move (rhs.node_)},
-              end_node_{std::move (rhs.end_node_)},
+            : end_node_{std::move (rhs.end_node_)},
               leftmost_{std::exchange (rhs.leftmost_, rhs.end_node())},
               rightmost_{std::exchange (rhs.rightmost_, nullptr)},
-              comp_{std::move (rhs.comp_)} {}
+              comp_{std::move (rhs.comp_)},
+              size_{std::move (rhs.size_)} {}
 
     RB_Tree &operator= (RB_Tree &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_compare> &&
                                                  std::is_nothrow_move_assignable_v<key_compare>)
     {
-        std::swap (nodes_, rhs.nodes_);
         std::swap (end_node_, rhs.end_node_);
         std::swap (leftmost_, rhs.leftmost_);
         std::swap (rightmost_, rhs.rightmost_);
         std::swap (comp_, rhs.comp_);
+        std::swap (size_, rhs.size_);
 
         return *this;
     }
 
     ~RB_Tree ()
     {
-        for (auto &&node : nodes_)
-            delete node;
+        clean_up (root());
     }
 
     // Observers
@@ -418,7 +390,7 @@ public:
 
     // Capacity
 
-    size_type size () const noexcept { return nodes_.size(); }
+    size_type size () const noexcept { return size_; }
     bool empty () const noexcept { return size() == 0; }
 
     // Iterators
@@ -444,10 +416,10 @@ public:
 
     void clear ()
     {
-        nodes_.clear();
+        clean_up (root());
 
         leftmost_ = rightmost_ = nullptr;
-        root() = nullptr; 
+        root() = nullptr;
     }
 
     std::pair<iterator, bool> insert (const key_type &key)
@@ -497,7 +469,6 @@ public:
 
         root() = detail::erase<node_type, color_type> (root(), node);
 
-        nodes_.erase (node);
         delete node;
 
         return pos;
@@ -640,29 +611,22 @@ private:
         return const_cast<RB_Tree &>(*this).upper_bound (const_cast<node_ptr>(node), key);
     }
 
-    node_ptr allocate_node (const key_type &key, const color_type color)
-    {
-        auto new_node = new node_type{key, color};
-        nodes_.insert (new_node);
-
-        return new_node;
-    }
-
     node_ptr insert_root (const key_type &key)
     {
-        auto new_node = allocate_node (key, color_type::black);
+        auto new_node = new node_type{key, color_type::black};
         
         root() = new_node;
         root()->parent_ = end_node();
 
         leftmost_ = rightmost_ = new_node;
+        size_++;
 
         return new_node;
     }
 
     node_ptr insert_hint_unique (node_ptr parent, const key_type &key)
     {
-        auto new_node = allocate_node (key, color_type::red);
+        auto new_node = new node_type {key, color_type::red};
         new_node->parent_ = parent;
 
         if (key < parent->key())
@@ -677,6 +641,8 @@ private:
         else if (new_node == rightmost_->right_)
             rightmost_ = new_node;
 
+        size_++;
+
         return new_node;
     }
 
@@ -690,6 +656,24 @@ private:
         
             if (node == nullptr)
                 insert_hint_unique (parent, key);
+        }
+    }
+
+    void clean_up (node_ptr root)
+    {
+        for (node_ptr node = root, save{}; node != nullptr; node = save)
+        {
+            if (node->left_ == nullptr)
+            {
+                save = node->right_;
+                delete node;
+            }
+            else
+            {
+                save = node->left_;
+                node->left_ = save->right_;
+                save->right_ = node;
+            }
         }
     }
 };
