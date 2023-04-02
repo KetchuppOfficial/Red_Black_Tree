@@ -176,7 +176,7 @@ public:
     node_ptr parent_ = nullptr;
 
     color_type color_;
-    size_type subtree_size_{};
+    size_type subtree_size_{1};
 
 private:
 
