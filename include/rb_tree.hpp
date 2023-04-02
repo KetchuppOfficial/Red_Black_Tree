@@ -417,8 +417,11 @@ public:
     void clear ()
     {
         clean_up (root());
+        size_ = 0;
 
-        leftmost_ = rightmost_ = nullptr;
+        leftmost_ = end_node();
+        rightmost_ = nullptr;
+
         root() = nullptr;
     }
 
