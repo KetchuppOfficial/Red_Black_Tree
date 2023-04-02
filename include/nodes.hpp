@@ -392,6 +392,35 @@ Advanced_RB_Node<Key_T> *kth_smallest (Advanced_RB_Node<Key_T> *root,
     return const_cast<node_ptr>(kth_smallest (static_cast<const_node_ptr>(root), k));
 }
 
+template<typename Key_T>
+auto n_less_than (const Advanced_RB_Node<Key_T> *root, const Advanced_RB_Node<Key_T> *node) noexcept ->
+typename Advanced_RB_Node<Key_T>::size_type
+{
+    using size_type = typename Advanced_RB_Node<Key_T>::size_type;
+    
+    auto left = node->left_;
+    auto rank = left ? left->size_ : size_type{0};
+
+    while (node != root)
+    {
+        if (node == node->parent_->right_)
+            rank += node->parent_->left_->size_ + 1;
+
+        node = node->parent_;
+    }
+
+    return rank;
+}
+
+template<typename Key_T>
+auto n_less_than (Advanced_RB_Node<Key_T> *root, Advanced_RB_Node<Key_T> *node) noexcept ->
+typename Advanced_RB_Node<Key_T>::size_type
+{
+    using const_node_ptr = const Advanced_RB_Node<Key_T> *;
+
+    return n_less_than (static_cast<const_node_ptr>(root), static_cast<const_node_ptr>(node));
+}
+
 } // namespace detail
 
 } // namespace yLab
