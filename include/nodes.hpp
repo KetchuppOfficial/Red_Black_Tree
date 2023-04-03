@@ -286,8 +286,8 @@ void right_rotate_plus (ARB_Node<Key_T> *x)
 }
 
 template<typename Key_T>
-const ARB_Node<Key_T> *kth_smallest (const ARB_Node<Key_T> *root, 
-                                             typename ARB_Node<Key_T>::size_type k) noexcept
+const ARB_Node<Key_T> *kth_smallest (const ARB_Node<Key_T> *root,
+                                     typename ARB_Node<Key_T>::size_type k) noexcept
 {
     if (k > root->subtree_size_)
         return nullptr;
@@ -314,8 +314,8 @@ const ARB_Node<Key_T> *kth_smallest (const ARB_Node<Key_T> *root,
 }
 
 template<typename Key_T>
-ARB_Node<Key_T> *kth_smallest (ARB_Node<Key_T> *root, 
-                                       typename ARB_Node<Key_T>::size_type k) noexcept
+ARB_Node<Key_T> *kth_smallest (ARB_Node<Key_T> *root,
+                               typename ARB_Node<Key_T>::size_type k) noexcept
 {
     using node_ptr = ARB_Node<Key_T> *;
     using const_node_ptr = const ARB_Node<Key_T> *;
