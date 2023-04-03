@@ -11,12 +11,14 @@
  */
 TEST (Details, Left_Tree_Rotation)
 {
-    yLab::RB_Node<int> root{1, yLab::RB_Color::red};
-    yLab::RB_Node<int> x{2, yLab::RB_Color::red};
-    yLab::RB_Node<int> y{3, yLab::RB_Color::red};
-    yLab::RB_Node<int> a{4, yLab::RB_Color::red};
-    yLab::RB_Node<int> b{5, yLab::RB_Color::red};
-    yLab::RB_Node<int> c{6, yLab::RB_Color::red};
+    using color_type = typename yLab::ARB_Node<int>::RB_Color;
+
+    yLab::ARB_Node<int> root{1, color_type::red};
+    yLab::ARB_Node<int> x{2, color_type::red};
+    yLab::ARB_Node<int> y{3, color_type::red};
+    yLab::ARB_Node<int> a{4, color_type::red};
+    yLab::ARB_Node<int> b{5, color_type::red};
+    yLab::ARB_Node<int> c{6, color_type::red};
 
     x.parent_ = &root;
     x.left_   = &a;
@@ -49,21 +51,22 @@ TEST (Details, Left_Tree_Rotation)
 
 /*
  *   |               |
- *   x               y
+ *   y               x
  *  / \             / \
- * a   y    <--    x   c
+ * a   x    <--    y   c
  *    / \         / \
  *   b   c       a   b
  */
 TEST (Details, Right_Tree_Rotation)
 {
-    yLab::RB_Node<int> root{1, yLab::RB_Color::black};
-    yLab::RB_Node<int> x{2, yLab::RB_Color::red};
-    yLab::RB_Node<int> y{3, yLab::RB_Color::red};
-    yLab::RB_Node<int> a{4, yLab::RB_Color::red};
-    yLab::RB_Node<int> b{5, yLab::RB_Color::red};
-    yLab::RB_Node<int> c{6, yLab::RB_Color::red};
+    using color_type = typename yLab::ARB_Node<int>::RB_Color;
     
+    yLab::ARB_Node<int> root{1, color_type::black};
+    yLab::ARB_Node<int> x{2, color_type::red};
+    yLab::ARB_Node<int> y{3, color_type::red};
+    yLab::ARB_Node<int> a{4, color_type::red};
+    yLab::ARB_Node<int> b{5, color_type::red};
+    yLab::ARB_Node<int> c{6, color_type::red};
 
     y.parent_ = &root;
     y.left_   = &x;
