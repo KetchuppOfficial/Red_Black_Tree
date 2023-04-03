@@ -19,8 +19,9 @@ namespace yLab
 namespace detail
 {
 
+// Doesn't affect tree structure; nodes are only recollored
 // RB_invatiant (end_node_->left_) == true
-// But end_node_->left_ may be different than the value passed ad root
+// But end_node_->left_ may be different than the value passed as root
 template <typename Node_T>
 void rb_insert_fixup (const Node_T *root, Node_T *new_node)
 {       
@@ -70,7 +71,7 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
         
         if (is_left_child (new_node->parent_))
         {
-            // (new_node->parent_ != root_) ==> exitsts (new_node->parent_->parent_)
+            // (new_node->parent_ != root_) ==> exists (new_node->parent_->parent_)
             Node_T *uncle = new_node->parent_->parent_->right_;
 
             if (uncle && uncle->color_ == color_type::red)
@@ -80,10 +81,10 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
                 if (!is_left_child (new_node->parent_))
                 {
                     new_node = new_node->parent_;
-                    left_rotate (new_node);
+                    left_rotate_plus (new_node);
                 }
 
-                right_rotate (fixup_subroutine_2 (new_node));
+                right_rotate_plus (fixup_subroutine_2 (new_node));
                 break;
             }
         }
@@ -99,14 +100,25 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
                 if (is_left_child (new_node->parent_))
                 {
                     new_node = new_node->parent_;
-                    detail::right_rotate (new_node);
+                    detail::right_rotate_plus (new_node);
                 }
 
-                left_rotate (fixup_subroutine_2 (new_node));
+                left_rotate_plus (fixup_subroutine_2 (new_node));
                 break;
             }
         }
     }
+}
+
+template<typename Key_T>
+void recalculate_size (ARB_Node<Key_T> *parent, ARB_Node<Key_T> *old_node, ARB_Node<Key_T> *new_node)
+{
+    auto parent_size = parent->subtree_size_;
+    parent_size -= old_node->subtree_size_;
+    if (new_node)
+        parent_size += new_node->subtree_size_;
+
+    parent->subtree_size_ = parent_size;
 }
 
 template<typename Node_T, typename Color_T>
@@ -119,35 +131,42 @@ Node_T *erase (Node_T *root, Node_T *z) noexcept
     if (x)
         x->parent_ = y->parent_;
     
+    auto yp = y->parent_;
     if (is_left_child (y))
     {
-        y->parent_->left_ = x;
+        yp->left_ = x;
         
         if (y != root)
-            w = y->parent_->right_;
+            w = yp->right_;
         else
             root = x;
     }
     else
     {
-        y->parent_->right_ = x;
-        w = y->parent_->left_;
+        yp->right_ = x;
+        w = yp->left_;
     }
+
+    recalculate_size (yp, y, x);
 
     auto y_orig_color = y->color_;
 
     if (y != z)
     {
-        y->parent_ = z->parent_;
-
+        auto zp = z->parent_;
         if (is_left_child (z))
-            y->parent_->left_ = y;
+            zp->left_ = y;
         else
-            y->parent_->right_ = y;
+            zp->right_ = y;
+
+        recalculate_size (zp, z, y);
+
+        y->parent_ = zp;
 
         y->left_ = z->left_;
-        y->left_->parent_ = y;
         y->right_ = z->right_;
+        y->subtree_size_ = z->subtree_size_;
+        y->left_->parent_ = y;
 
         if (y->right_)
             y->right_->parent_ = y;
@@ -164,6 +183,7 @@ Node_T *erase (Node_T *root, Node_T *z) noexcept
     return root;
 }
 
+// Doesn't affect tree structure; nodes are only recollored
 template<typename Node_T, typename Color_T>
 Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 {
@@ -181,7 +201,7 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                 {
                     w->color_ = color_type::black;
                     w->parent_->color_ = color_type::red;
-                    detail::left_rotate (w->parent_);
+                    detail::left_rotate_plus (w->parent_);
 
                     if (root == w->left_)
                         root = w;
@@ -209,14 +229,14 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                     {
                         w->left_->color_ = color_type::black;
                         w->color_ = color_type::red;
-                        detail::right_rotate (w);
+                        detail::right_rotate_plus (w);
                         w = w->parent_;
                     }
 
                     w->color_ = w->parent_->color_;
                     w->parent_->color_ = color_type::black;
                     w->right_->color_ = color_type::black;
-                    detail::left_rotate (w->parent_);
+                    detail::left_rotate_plus (w->parent_);
                     break;
                 }
             }
@@ -226,7 +246,7 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                 {
                     w->color_ = color_type::black;
                     w->parent_->color_ = color_type::red;
-                    detail::right_rotate (w->parent_);
+                    detail::right_rotate_plus (w->parent_);
 
                     if (root == w->right_)
                         root = w;
@@ -254,14 +274,14 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                     {
                         w->right_->color_ = color_type::black;
                         w->color_ = color_type::red;
-                        detail::left_rotate (w);
+                        detail::left_rotate_plus (w);
                         w = w->parent_;
                     }
 
                     w->color_ = w->parent_->color_;
                     w->parent_->color_ = color_type::black;
                     w->left_->color_ = color_type::black;
-                    detail::right_rotate (w->parent_);
+                    detail::right_rotate_plus (w->parent_);
                     break;
                 }
             }
@@ -278,8 +298,7 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
  * 1) root_->parent points to a non-null structure of type End_Node, which has a member
  *    left_ that points back to root_ (end_node)
  */
-template <typename Key_T, typename Compare = std::less<Key_T>, typename Node_T = RB_Node<Key_T>>
-requires Binary_Tree_Node<Node_T>
+template <typename Key_T, typename Compare = std::less<Key_T>>
 class RB_Tree final
 {
 public:
@@ -294,7 +313,7 @@ public:
     using const_reference = const value_type &;
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
-    using node_type = Node_T;
+    using node_type = ARB_Node<key_type>;
     using iterator = tree_iterator<key_type, node_type>;
     using const_iterator = tree_iterator<key_type, const node_type>;
     using reverse_iterator = std::reverse_iterator<iterator>;
@@ -308,13 +327,8 @@ private:
     using end_node_type = End_Node<node_type>;
 
     end_node_type end_node_{};
-
     node_ptr leftmost_  = end_node();
-    node_ptr rightmost_ = nullptr;
-
     key_compare comp_;
-
-    size_type size_ = 0;
 
 public:
 
@@ -361,18 +375,14 @@ public:
     RB_Tree (RB_Tree &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_compare>)
             : end_node_{std::move (rhs.end_node_)},
               leftmost_{std::exchange (rhs.leftmost_, rhs.end_node())},
-              rightmost_{std::exchange (rhs.rightmost_, nullptr)},
-              comp_{std::move (rhs.comp_)},
-              size_{std::move (rhs.size_)} {}
+              comp_{std::move (rhs.comp_)} {}
 
     RB_Tree &operator= (RB_Tree &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_compare> &&
                                                  std::is_nothrow_move_assignable_v<key_compare>)
     {
         std::swap (end_node_, rhs.end_node_);
         std::swap (leftmost_, rhs.leftmost_);
-        std::swap (rightmost_, rhs.rightmost_);
         std::swap (comp_, rhs.comp_);
-        std::swap (size_, rhs.size_);
 
         return *this;
     }
@@ -390,7 +400,7 @@ public:
 
     // Capacity
 
-    size_type size () const noexcept { return size_; }
+    size_type size () const noexcept { return end_node_.subtree_size_ - 1; }
     bool empty () const noexcept { return size() == 0; }
 
     // Iterators
@@ -417,11 +427,8 @@ public:
     void clear ()
     {
         clean_up (root());
-        size_ = 0;
 
         leftmost_ = end_node();
-        rightmost_ = nullptr;
-
         root() = nullptr;
     }
 
@@ -467,11 +474,7 @@ public:
         if (node == leftmost_)
             leftmost_ = pos.node_;
 
-        if (node == rightmost_)
-            rightmost_ = detail::predecessor (node);
-
         root() = detail::erase<node_type, color_type> (root(), node);
-
         delete node;
 
         return pos;
@@ -521,6 +524,27 @@ public:
     
     // I see how this violates SRP but I don't know any better implementation
     void graphic_dump (std::ostream &os) const { detail::graphic_dump (os, leftmost_, end_node()); }
+
+    bool search_verifier () const
+    {
+        auto first = begin(), last = end();
+        
+        for (;;)
+        {
+            auto current = *first++;
+            if (first != end())
+            {
+                auto next = *first;
+
+                if (!comp_(current, next))
+                    return false;
+            }
+            else
+                break;
+        }
+
+        return true;
+    }
 
     #endif // DEBUG
 
@@ -614,22 +638,30 @@ private:
         return const_cast<RB_Tree &>(*this).upper_bound (const_cast<node_ptr>(node), key);
     }
 
-    node_ptr insert_root (const key_type &key)
+    node_ptr alloc_node (const &key)
     {
         auto new_node = new node_type{key, color_type::black};
+        end_node_.subtree_size_++;
+
+        return new_node;
+    }
+
+    node_ptr insert_root (const key_type &key)
+    {
+        auto new_node = alloc_node (key);
         
         root() = new_node;
         root()->parent_ = end_node();
 
-        leftmost_ = rightmost_ = new_node;
-        size_++;
+        leftmost_ = new_node;
+        end_node_.subtree_size_++;
 
         return new_node;
     }
 
     node_ptr insert_hint_unique (node_ptr parent, const key_type &key)
     {
-        auto new_node = new node_type {key, color_type::red};
+        auto new_node = alloc_node (key);
         new_node->parent_ = parent;
 
         if (comp_(key, parent->key()))
@@ -641,10 +673,6 @@ private:
 
         if (new_node == leftmost_->left_)
             leftmost_ = new_node;
-        else if (new_node == rightmost_->right_)
-            rightmost_ = new_node;
-
-        size_++;
 
         return new_node;
     }
