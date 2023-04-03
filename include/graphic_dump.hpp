@@ -19,16 +19,19 @@ void graphic_dump (std::ostream &os, const Node_T *begin, const Node_T *end)
         using color_type = typename Node_T::color_type;
         
         os << "    node_" << node
-           << " [style = filled, fillcolor = " << ((node->color_ == color_type::black) ? "green" : "red")
-           << ", label = \"" << node->key() << "\"];\n";
+           << " [style = filled, fillcolor = "
+           << ((node->color_ == color_type::black) ? "black, fontcolor = white"
+                                                   : "red, fontcolor = black")
+           << ", label = \"key: " << node->key()
+           << "| size: " << node->subtree_size_ << "\"];\n";
 
         if (node->left_ == nullptr)
             os << "\tleft_nil_node_" << node
-               << " [style = filled, fillcolor = \"green\", label = \"nil\"];\n";
+               << " [style = filled, fillcolor = black, fontcolor = white, label = \"nil\"];\n";
 
         if (node->right_ == nullptr)
             os << "\tright_nil_node_" << node
-               << " [style = filled, fillcolor = \"green\", label = \"nil\"];\n";
+               << " [style = filled, fillcolor = black, fontcolor = white, label = \"nil\"];\n";
     };
 
     auto arrow_dump = [&os](const Node_T *node)
@@ -54,10 +57,11 @@ void graphic_dump (std::ostream &os, const Node_T *begin, const Node_T *end)
     os << "digraph Tree\n"
           "{\n"
           "    rankdir = TB;\n"
-          "    node [style = rounded];\n\n";
+          "    node [shape = record];\n\n";
 
     os << "    node_" << end
-       << " [style = filled, fillcolor = yellow, label = \"end node\"];\n";
+       << " [style = filled, fillcolor = yellow, label = \"end node| "
+       << "size: " << end->subtree_size_ << "\"];\n";
 
     for (auto node_ptr = begin; node_ptr != end; node_ptr = detail::successor (node_ptr))
         node_dump (node_ptr);
