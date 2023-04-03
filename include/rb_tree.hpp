@@ -535,6 +535,25 @@ public:
 
     bool contains (const key_type &key) const { return find (key) != end(); }
 
+    iterator kth_smallest (size_type k)
+    {
+        auto node = detail::kth_smallest (root(), k);
+        return (node) ? iterator{node} : end();
+    }
+
+    const_iterator kth_smallest (size_type k) const
+    {
+        auto node = detail::kth_smallest (root(), k);
+        return (node) ? const_iterator{node} : end();
+    }
+
+    size_type n_less_than (iterator it) { return detail::n_less_than (root(), it.node_); }
+
+    size_type n_less_than (const_iterator it) const
+    {
+        return detail::n_less_than (root()), it.node_;
+    }
+
     #ifdef DEBUG
     
     // I see how this violates SRP but I don't know any better implementation
