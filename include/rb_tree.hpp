@@ -5,6 +5,7 @@
 #include <initializer_list>
 #include <functional>
 #include <type_traits>
+#include <cassert>
 
 #include "nodes.hpp"
 #include "tree_iterator.hpp"
@@ -72,7 +73,7 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
         if (is_left_child (new_node->parent_))
         {
             // (new_node->parent_ != root_) ==> exists (new_node->parent_->parent_)
-            Node_T *uncle = new_node->parent_->parent_->right_;
+            auto uncle = new_node->parent_->parent_->right_;
 
             if (uncle && uncle->color_ == color_type::red)
                 new_node = fixup_subroutine_1 (new_node, uncle, root);
@@ -91,7 +92,7 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
         else
         {
             // (new_node->parent_ != root_) ==> exitsts (new_node->parent_->parent_)
-            Node_T *uncle = new_node->parent_->parent_->left_;
+            auto uncle = new_node->parent_->parent_->left_;
 
             if (uncle && uncle->color_ == color_type::red)
                 new_node = fixup_subroutine_1 (new_node, uncle, root);
@@ -110,28 +111,17 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
     }
 }
 
-template<typename Key_T>
-void recalculate_size (ARB_Node<Key_T> *parent, ARB_Node<Key_T> *old_node, ARB_Node<Key_T> *new_node)
-{
-    auto parent_size = parent->subtree_size_;
-    parent_size -= old_node->subtree_size_;
-    if (new_node)
-        parent_size += new_node->subtree_size_;
-
-    parent->subtree_size_ = parent_size;
-}
-
 template<typename Node_T, typename Color_T>
 Node_T *erase (Node_T *root, Node_T *z) noexcept
-{
+{    
+    assert (root && z);
+    
     auto y = (z->left_ == nullptr || z->right_ == nullptr) ? z : successor (z);
     auto x = (y->left_ == nullptr) ? y->right_ : y->left_;
     auto w = static_cast<Node_T *>(nullptr);
 
-    if (x)
-        x->parent_ = y->parent_;
-    
     auto yp = y->parent_;
+    
     if (is_left_child (y))
     {
         yp->left_ = x;
@@ -147,34 +137,57 @@ Node_T *erase (Node_T *root, Node_T *z) noexcept
         w = yp->left_;
     }
 
-    recalculate_size (yp, y, x);
+    if (x)
+    {
+        x->parent_ = yp;
+        yp->subtree_size_ += (x->subtree_size_ - y->subtree_size_);
+    }
+    else
+        yp->subtree_size_ -= y->subtree_size_;
 
     auto y_orig_color = y->color_;
 
     if (y != z)
     {
-        auto zp = z->parent_;
-        if (is_left_child (z))
-            zp->left_ = y;
-        else
-            zp->right_ = y;
+        auto zl = z->left_;
+        auto zr = z->right_;
 
-        recalculate_size (zp, z, y);
+        y->left_ = zl;
+        y->right_ = zr;
 
-        y->parent_ = zp;
-
-        y->left_ = z->left_;
-        y->right_ = z->right_;
-        y->subtree_size_ = z->subtree_size_;
         y->left_->parent_ = y;
-
         if (y->right_)
             y->right_->parent_ = y;
 
         y->color_ = z->color_;
 
+        y->subtree_size_ = (zl ? z->left_->subtree_size_ : 0) +
+                           (zr ? z->right_->subtree_size_ : 0) + 1;
+
+        auto zp = z->parent_;
+        if (is_left_child (z))
+        {
+            zp->left_ = y;
+            zp->subtree_size_ = 1 + y->subtree_size_ +
+                                ((zp->right_) ? zp->right_->subtree_size_ : 0);
+        }
+        else
+        {
+            zp->right_ = y;
+            zp->subtree_size_ = 1 + y->subtree_size_ +
+                                ((zp->left_) ? zp->left_->subtree_size_ : 0);
+        }
+
+        y->parent_ = zp;
+
         if (z == root)
             root = y;
+    }
+    else
+    {
+        auto end_node = root->parent_;
+        for (auto node = yp->parent_; node != end_node; node = node->parent_)
+            node->subtree_size_--;
     }
 
     if (y_orig_color == Color_T::black && root)
@@ -477,6 +490,8 @@ public:
         root() = detail::erase<node_type, color_type> (root(), node);
         delete node;
 
+        end_node_.subtree_size_--;
+
         return pos;
     }
 
@@ -662,6 +677,9 @@ private:
             parent->left_ = new_node;
         else
             parent->right_ = new_node;
+
+        for (auto node = parent; node != end_node(); node = node->parent_)
+            node->subtree_size_++;
 
         detail::rb_insert_fixup (root(), new_node);
 
