@@ -654,7 +654,6 @@ private:
         root()->parent_ = end_node();
 
         leftmost_ = new_node;
-        end_node_.subtree_size_++;
 
         return new_node;
     }
