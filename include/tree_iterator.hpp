@@ -62,8 +62,7 @@ public:
 
     bool operator== (const tree_iterator &rhs) const { return node_ == rhs.node_; }
 
-    template<typename key_t, typename compare, typename node_t>
-    requires Binary_Tree_Node<node_t> friend class RB_Tree;
+    template<typename key_t, typename compare> friend class RB_Tree;
 };
 
 } // namespace yLab
