@@ -233,11 +233,15 @@ void left_rotate (Node_T *x)
 template<typename Key_T>
 void left_rotate_plus (ARB_Node<Key_T> *x)
 {
+    using size_type = typename ARB_Node<Key_T>::size_type;
+    
+    assert (x && x->right_);
+    
     auto y = x->right_;
 
-    auto a_size = x->left_->subtree_size_;
-    auto b_size = y->left_->subtree_size_;
-    auto c_size = y->right_->subtree_size_;
+    auto a_size = x->subtree_size_ - y->subtree_size_ - 1;
+    auto b_size = (y->left_) ? y->left_->subtree_size_ : size_type{0};
+    auto c_size = (y->right_) ? y->right_->subtree_size_ : size_type{0};
 
     left_rotate (x);
 
@@ -274,11 +278,15 @@ void right_rotate (Node_T *x)
 template<typename Key_T>
 void right_rotate_plus (ARB_Node<Key_T> *x)
 {
+    using size_type = typename ARB_Node<Key_T>::size_type;
+    
+    assert (x && x->left_);
+    
     auto y = x->left_;
 
-    auto a_size = y->left_->subtree_size_;
-    auto b_size = y->right_->subtree_size_;
-    auto c_size = x->right_->subtree_size_;
+    auto c_size = x->subtree_size_ - y->subtree_size_ - 1;
+    auto a_size = (y->left_) ? y->left_->subtree_size_ : size_type{0};
+    auto b_size = (y->right_) ? y->right_->subtree_size_ : size_type{0};
 
     right_rotate (x);
 
