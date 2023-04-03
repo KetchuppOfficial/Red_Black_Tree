@@ -31,7 +31,10 @@ class End_Node
 
 public:
 
+    using size_type = std::size_t;
+
     node_ptr left_ = nullptr;
+    size_type subtree_size_{1};
 
     End_Node () = default;
 
@@ -40,133 +43,33 @@ public:
     End_Node (const End_Node &rhs) = delete;
     End_Node &operator= (const End_Node &rhs) = delete;
 
-    End_Node (End_Node &&rhs) noexcept : left_{std::exchange (rhs.left_, nullptr)} {}
+    End_Node (End_Node &&rhs) noexcept : left_{std::exchange (rhs.left_, nullptr)}
+                                         subtree_size_{std::exchange (rhs.subtree_size_, 1)} {}
 
     End_Node &operator= (End_Node &&rhs) noexcept
     {
         std::swap (left_, rhs.left_);
+        std::swap (subtree_size_, rhs.subtree_size_);
         return *this;
     }
 
     virtual ~End_Node() = default;
 };
 
-struct BT_Node_Tag {};
-struct RB_Node_Tag : public BT_Node_Tag {};
-struct Advanced_RB_Node_Tag : public RB_Node_Tag {};
-
-template<typename Key_T, typename Node_Tag>
-class Tree_Node : public End_Node<Tree_Node<Key_T, Node_Tag>>
+// ARB_Node - advanced red-black node
+template<typename Key_T>
+class ARB_Node : public End_Node<ARB_Node<Key_T>>
 {
-    using node_ptr = Tree_Node *;
-    using base_ = End_Node<Tree_Node>;
+    using node_ptr = ARB_Node *;
+    using base_ = End_Node<ARB_Node>;
 
 public:
 
-    using key_type = Key_T;
-
-    node_ptr right_ = nullptr;
-    node_ptr parent_ = nullptr;
-
-private:
-
-    key_type key_;
-
-public:
-
-    Tree_Node (const key_type &key) : key_{key} {}
-
-    Tree_Node (const Tree_Node &rhs) = delete;
-    Tree_Node &operator= (const Tree_Node &rhs) = delete;
-
-    Tree_Node (Tree_Node &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_type>)
-            : base_{std::move (rhs)},
-              right_{std::exchange (rhs.right, nullptr)},
-              parent_{std::exchange (rhs.parent_, nullptr)},
-              key_{std::move (rhs.key_)} {}
-
-    Tree_Node &operator= (Tree_Node &rhs) noexcept (std::is_nothrow_move_constructible_v<key_type> &&
-                                                    std::is_nothrow_move_assignable_v<key_type>)
+    enum class RB_Color
     {
-        std::swap (static_cast<base_ &>(*this), static_cast<base_ &>(rhs));
-        std::swap (right_, rhs.right_);
-        std::swap (parent_, rhs.right_);
-        std::swap (key_, rhs.key_);
-        
-        return *this;
-    }
-
-    const key_type &key () const { return key_; }
-};
-
-template<typename Key_T>
-using BT_Node = Tree_Node<Key_T, BT_Node_Tag>;
-
-enum class RB_Color
-{
-    red,
-    black
-};
-
-template<typename Key_T>
-class Tree_Node<Key_T, RB_Node_Tag> : public End_Node<Tree_Node<Key_T, RB_Node_Tag>>
-{   
-    using node_ptr = Tree_Node *;
-    using base_ = End_Node<Tree_Node>;
-
-public:
-
-    using key_type = Key_T;
-    using color_type = RB_Color;
-
-    node_ptr right_ = nullptr;
-    node_ptr parent_ = nullptr;
-
-    color_type color_;
-
-private:
-
-    key_type key_;
-
-public:
-
-    Tree_Node (const key_type &key, color_type color) : color_{color}, key_{key} {}
-
-    Tree_Node (const Tree_Node &rhs) = delete;
-    Tree_Node &operator= (const Tree_Node &rhs) = delete;
-
-    Tree_Node (Tree_Node &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_type>)
-            : base_{std::move (rhs)},
-              right_{std::exchange (rhs.right, nullptr)},
-              parent_{std::exchange (rhs.parent_, nullptr)},
-              color_{std::move (rhs.color_)},
-              key_{std::move (rhs.key_)} {}
-
-    Tree_Node &operator= (Tree_Node &rhs) noexcept (std::is_nothrow_move_constructible_v<key_type> &&
-                                                    std::is_nothrow_move_assignable_v<key_type>)
-    {
-        std::swap (static_cast<base_ &>(*this), static_cast<base_ &>(rhs));
-        std::swap (right_, rhs.right_);
-        std::swap (parent_, rhs.right_);
-        std::swap (color_, rhs.color_);
-        std::swap (key_, rhs.key_);
-        
-        return *this;
-    }
-
-    const key_type &key () const { return key_; }
-};
-
-template<typename Key_T>
-using RB_Node = Tree_Node<Key_T, RB_Node_Tag>;
-
-template<typename Key_T>
-class Tree_Node<Key_T, Advanced_RB_Node_Tag> : public End_Node<Tree_Node<Key_T, Advanced_RB_Node_Tag>>
-{
-    using node_ptr = Tree_Node *;
-    using base_ = End_Node<Tree_Node>;
-
-public:
+        red,
+        black
+    };
 
     using key_type = Key_T;
     using color_type = RB_Color;
@@ -176,7 +79,6 @@ public:
     node_ptr parent_ = nullptr;
 
     color_type color_;
-    size_type subtree_size_{1};
 
 private:
 
@@ -184,27 +86,25 @@ private:
 
 public:
 
-    Tree_Node (const key_type &key, color_type color) : color_{color}, key_{key} {}
+    ARB_Node (const key_type &key, color_type color) : color_{color}, key_{key} {}
 
-    Tree_Node (const Tree_Node &rhs) = delete;
-    Tree_Node &operator= (const Tree_Node &rhs) = delete;
+    ARB_Node (const ARB_Node &rhs) = delete;
+    ARB_Node &operator= (const ARB_Node &rhs) = delete;
 
-    Tree_Node (Tree_Node &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_type>)
+    ARB_Node (ARB_Node &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_type>)
             : base_{std::move (rhs)},
               right_{std::exchange (rhs.right, nullptr)},
               parent_{std::exchange (rhs.parent_, nullptr)},
               color_{std::move (rhs.color_)},
-              subtree_size_{std::exchange (rhs.subtree_size_, 0)},
               key_{std::move (rhs.key_)} {}
 
-    Tree_Node &operator= (Tree_Node &rhs) noexcept (std::is_nothrow_move_constructible_v<key_type> &&
+    ARB_Node &operator= (ARB_Node &rhs) noexcept (std::is_nothrow_move_constructible_v<key_type> &&
                                                     std::is_nothrow_move_assignable_v<key_type>)
     {
         std::swap (static_cast<base_ &>(*this), static_cast<base_ &>(rhs));
         std::swap (right_, rhs.right_);
         std::swap (parent_, rhs.right_);
         std::swap (color_, rhs.color_);
-        std::swap (subtree_size_, rhs.subtree_size_);
         std::swap (key_, rhs.key_);
         
         return *this;
@@ -212,9 +112,6 @@ public:
 
     const key_type &key () const { return key_; }
 };
-
-template<typename Key_T>
-using Advanced_RB_Node = Tree_Node<Key_T, Advanced_RB_Node_Tag>;
 
 namespace detail
 {
@@ -314,21 +211,37 @@ requires Binary_Tree_Node<Node_T>
 void left_rotate (Node_T *x)
 {
     assert (x && x->right_);
-    
-    auto y = x->right_;
 
-    x->right_ = y->left_;
-    if (y->left_)
-        y->left_->parent_ = x;
+    auto yl = y->left_;
+    x->right_ = yl;
+    if (yl)
+        yl->parent_ = x;
 
-    y->parent_ = x->parent_;
+    auto xp = x->parent_;
+    y->parent_ = xp;
     if (is_left_child (x))
-        x->parent_->left_ = y;
+        xp->left_ = y;
     else
-        x->parent_->right_ = y;
+        xp->right_ = y;
 
     y->left_ = x;
     x->parent_ = y;
+}
+
+template<typename Key_T>
+void left_rotate_plus (ARB_Node<Key_T> *node)
+{
+    auto y = x->right_;
+
+    auto a_size = x->left_->subtree_size_;
+    auto b_size = y->left_->subtree_size_;
+    auto c_size = y->right_->subtree_size_;
+
+    left_rotate (x);
+
+    auto x_size = a_size + b_size + 1;
+    x->subtree_size_ = x_size;
+    y->subtree_size_ = x_size + c_size + 1;
 }
 
 // Sometimes root_ can be affected. So it has to be changed if necessary
@@ -340,23 +253,41 @@ void right_rotate (Node_T *x)
 
     auto y = x->left_;
 
-    x->left_ = y->right_;
-    if (y->right_)
-        y->right_->parent_ = x;
+    auto yr = y->right_;
+    x->left_ = yr;
+    if (yr)
+        yr->parent_ = x;
 
-    y->parent_ = x->parent_;
-    if (x == x->parent_->left_)
-        x->parent_->left_ = y;
+    auto xp = x->parent_;
+    y->parent_ = xp;
+    if (is_left_child (x))
+        xp->left_ = y;
     else
-        x->parent_->right_ = y;
+        xp->right_ = y;
 
     y->right_ = x;
     x->parent_ = y;
 }
 
 template<typename Key_T>
-const Advanced_RB_Node<Key_T> *kth_smallest (const Advanced_RB_Node<Key_T> *root, 
-                                             typename Advanced_RB_Node<Key_T>::size_type k) noexcept
+void right_rotate_plus (ARB_Node<Key_T> *x)
+{
+    auto y = x->left_;
+
+    auto a_size = y->left_->subtree_size_;
+    auto b_size = y->right_->subtree_size_;
+    auto c_size = x->right_->subtree_size_;
+
+    right_rotate (x);
+
+    auto x_size = b_size + c_size + 1;
+    x->subtree_size_ = x_size;
+    y->subtree_size_ = a_size + x_size + 1;
+}
+
+template<typename Key_T>
+const ARB_Node<Key_T> *kth_smallest (const ARB_Node<Key_T> *root, 
+                                             typename ARB_Node<Key_T>::size_type k) noexcept
 {
     if (k > root->subtree_size_)
         return nullptr;
@@ -383,20 +314,20 @@ const Advanced_RB_Node<Key_T> *kth_smallest (const Advanced_RB_Node<Key_T> *root
 }
 
 template<typename Key_T>
-Advanced_RB_Node<Key_T> *kth_smallest (Advanced_RB_Node<Key_T> *root, 
-                                       typename Advanced_RB_Node<Key_T>::size_type k) noexcept
+ARB_Node<Key_T> *kth_smallest (ARB_Node<Key_T> *root, 
+                                       typename ARB_Node<Key_T>::size_type k) noexcept
 {
-    using node_ptr = Advanced_RB_Node<Key_T> *;
-    using const_node_ptr = const Advanced_RB_Node<Key_T> *;
+    using node_ptr = ARB_Node<Key_T> *;
+    using const_node_ptr = const ARB_Node<Key_T> *;
 
     return const_cast<node_ptr>(kth_smallest (static_cast<const_node_ptr>(root), k));
 }
 
 template<typename Key_T>
-auto n_less_than (const Advanced_RB_Node<Key_T> *root, const Advanced_RB_Node<Key_T> *node) noexcept ->
-typename Advanced_RB_Node<Key_T>::size_type
+auto n_less_than (const ARB_Node<Key_T> *root, const ARB_Node<Key_T> *node) noexcept ->
+typename ARB_Node<Key_T>::size_type
 {
-    using size_type = typename Advanced_RB_Node<Key_T>::size_type;
+    using size_type = typename ARB_Node<Key_T>::size_type;
     
     auto left = node->left_;
     auto rank = left ? left->size_ : size_type{0};
@@ -413,10 +344,10 @@ typename Advanced_RB_Node<Key_T>::size_type
 }
 
 template<typename Key_T>
-auto n_less_than (Advanced_RB_Node<Key_T> *root, Advanced_RB_Node<Key_T> *node) noexcept ->
-typename Advanced_RB_Node<Key_T>::size_type
+auto n_less_than (ARB_Node<Key_T> *root, ARB_Node<Key_T> *node) noexcept ->
+typename ARB_Node<Key_T>::size_type
 {
-    using const_node_ptr = const Advanced_RB_Node<Key_T> *;
+    using const_node_ptr = const ARB_Node<Key_T> *;
 
     return n_less_than (static_cast<const_node_ptr>(root), static_cast<const_node_ptr>(node));
 }
