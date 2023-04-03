@@ -100,7 +100,7 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
                 if (is_left_child (new_node->parent_))
                 {
                     new_node = new_node->parent_;
-                    detail::right_rotate_plus (new_node);
+                    right_rotate_plus (new_node);
                 }
 
                 left_rotate_plus (fixup_subroutine_2 (new_node));
@@ -638,17 +638,10 @@ private:
         return const_cast<RB_Tree &>(*this).upper_bound (const_cast<node_ptr>(node), key);
     }
 
-    node_ptr alloc_node (const &key)
+    node_ptr insert_root (const key_type &key)
     {
         auto new_node = new node_type{key, color_type::black};
         end_node_.subtree_size_++;
-
-        return new_node;
-    }
-
-    node_ptr insert_root (const key_type &key)
-    {
-        auto new_node = alloc_node (key);
         
         root() = new_node;
         root()->parent_ = end_node();
@@ -660,7 +653,9 @@ private:
 
     node_ptr insert_hint_unique (node_ptr parent, const key_type &key)
     {
-        auto new_node = alloc_node (key);
+        auto new_node = new node_type{key, color_type::red};
+        end_node_.subtree_size_++;
+
         new_node->parent_ = parent;
 
         if (comp_(key, parent->key()))
