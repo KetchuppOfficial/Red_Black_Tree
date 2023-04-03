@@ -43,7 +43,7 @@ public:
     tree_iterator operator++ (int)
     {
         auto tmp = *this;
-        ++tmp;
+        ++(*this);
         return tmp;
     }
 
@@ -56,7 +56,7 @@ public:
     tree_iterator operator-- (int)
     {
         auto tmp = *this;
-        --tmp;
+        --(*this);
         return tmp;
     }
 
