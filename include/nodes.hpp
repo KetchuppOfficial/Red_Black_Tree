@@ -43,7 +43,7 @@ public:
     End_Node (const End_Node &rhs) = delete;
     End_Node &operator= (const End_Node &rhs) = delete;
 
-    End_Node (End_Node &&rhs) noexcept : left_{std::exchange (rhs.left_, nullptr)}
+    End_Node (End_Node &&rhs) noexcept : left_{std::exchange (rhs.left_, nullptr)},
                                          subtree_size_{std::exchange (rhs.subtree_size_, 1)} {}
 
     End_Node &operator= (End_Node &&rhs) noexcept
@@ -212,6 +212,8 @@ void left_rotate (Node_T *x)
 {
     assert (x && x->right_);
 
+    auto y = x->right_;
+
     auto yl = y->left_;
     x->right_ = yl;
     if (yl)
@@ -229,7 +231,7 @@ void left_rotate (Node_T *x)
 }
 
 template<typename Key_T>
-void left_rotate_plus (ARB_Node<Key_T> *node)
+void left_rotate_plus (ARB_Node<Key_T> *x)
 {
     auto y = x->right_;
 
