@@ -299,25 +299,26 @@ template<typename Key_T>
 const ARB_Node<Key_T> *kth_smallest (const ARB_Node<Key_T> *root,
                                      typename ARB_Node<Key_T>::size_type k) noexcept
 {
+    using size_type = typename ARB_Node<Key_T>::size_type;
+    
     if (k > root->subtree_size_)
         return nullptr;
-    
-    auto left = root->left_;
-    auto r = left ? left->size_ + 1 : root->size_;
-    // (r - 1) - number of nodes in the child subtree of root where kth smallest key locates
 
-    while (k != r)
-    {
-        if (k < r)
-            root = left ? left : root->right_;
+    auto left = root->left_;
+    auto left_size = (left) ? left->subtree_size_ : size_type{0};
+    
+    while (k != left_size + 1)
+    {    
+        if (0 < left_size && k <= left_size)
+            root = left;
         else
         {
             root = root->right_;
-            k = k - r;
+            k -= (left_size + 1);
         }
 
         left = root->left_;
-        r = left ? left->size_ + 1 : root->size_;
+        left_size = (left) ? left->subtree_size_ : size_type{0};
     }
 
     return root;
