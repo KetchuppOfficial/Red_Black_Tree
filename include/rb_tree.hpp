@@ -537,12 +537,18 @@ public:
 
     iterator kth_smallest (size_type k)
     {
+        if (empty())
+            return end();
+        
         auto node = detail::kth_smallest (root(), k);
         return (node) ? iterator{node} : end();
     }
 
     const_iterator kth_smallest (size_type k) const
     {
+        if (empty())
+            return end();
+        
         auto node = detail::kth_smallest (root(), k);
         return (node) ? const_iterator{node} : end();
     }
@@ -565,6 +571,9 @@ public:
 
     size_type n_less_than (const key_type &key) const
     {
+        if (empty())
+            return 0;
+        
         auto &max_key = *--end();
         if (comp_(max_key, key))
             return size();
