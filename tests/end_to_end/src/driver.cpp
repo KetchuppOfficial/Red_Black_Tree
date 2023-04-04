@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iterator>
 #include <exception>
+#include <set>
 
 #include "rb_tree.hpp"
 
@@ -13,7 +14,13 @@ int main ()
         n_less_than_given = 'n'
     };
 
-    yLab::RB_Tree<int> set;
+    #ifndef NAIVE
+    yLab::RB_Tree<int> tree;
+    #endif // NAIVE
+
+    #ifdef NAIVE
+    std::set<int> tree;
+    #endif // NAIVE
 
     while (!std::cin.eof())
     {
@@ -27,19 +34,32 @@ int main ()
         switch (query)
         {
             case Queries::key:
-                set.insert (key_);
+                tree.insert (key_);
                 break;
 
             case Queries::kth_smallest:
             {
-                auto it = set.begin();
+                #ifndef NAIVE
+                std::cout << *tree.kth_smallest(key_) << " ";
+                #endif // NAIVE
+                
+                #ifdef NAIVE
+                auto it = tree.begin();
                 std::advance (it, key_ - 1);
                 std::cout << *it << " ";
+                #endif // NAIVE
+                
                 break;
             } 
 
             case Queries::n_less_than_given:
-                std::cout << std::distance (set.begin(), set.lower_bound (key_)) << " ";
+                #ifndef NAIVE
+                std::cout << tree.n_less_than (key_);
+                #endif // NAIVE
+
+                #ifdef NAIVE
+                std::cout << std::distance (tree.begin(), tree.lower_bound (key_)) << " ";
+                #endif // NAIVE
                 break;
 
             default:
