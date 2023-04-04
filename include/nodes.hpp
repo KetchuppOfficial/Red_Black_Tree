@@ -341,12 +341,14 @@ typename ARB_Node<Key_T>::size_type
     using size_type = typename ARB_Node<Key_T>::size_type;
     
     auto left = node->left_;
-    auto rank = left ? left->size_ : size_type{0};
+    auto rank = left ? left->subtree_size_ : size_type{0};
 
     while (node != root)
     {
-        if (node == node->parent_->right_)
-            rank += node->parent_->left_->size_ + 1;
+        auto np = node->parent_;
+
+        if (node == np->right_)
+            rank += (np->left_) ? np->left_->subtree_size_ + 1 : 1;
 
         node = node->parent_;
     }
