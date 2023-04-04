@@ -547,11 +547,26 @@ public:
         return (node) ? const_iterator{node} : end();
     }
 
-    size_type n_less_than (iterator it) { return detail::n_less_than (root(), it.node_); }
+    size_type n_less_than (iterator it) const
+    {
+        return detail::n_less_than (root(), it.node_);
+    }
 
     size_type n_less_than (const_iterator it) const
     {
-        return detail::n_less_than (root()), it.node_;
+        return detail::n_less_than (root(), it.node_);
+    }
+
+    size_type n_less_than (const key_type &key) const
+    {
+        auto &max_key = *--end();
+        if (comp_(max_key, key))
+            return size();
+        else
+        {
+            auto it = lower_bound (key);
+            return n_less_than (it);
+        } 
     }
 
     #ifdef DEBUG
