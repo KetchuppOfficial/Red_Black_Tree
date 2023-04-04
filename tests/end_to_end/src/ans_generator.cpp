@@ -1,21 +1,20 @@
 #include <iostream>
 #include <exception>
+#include <set>
 
-#include "rb_tree.hpp"
 #include "common.hpp"
 
 int main ()
 {
-    yLab::RB_Tree<int> tree;
+    std::set<int> tree;
 
     while (!std::cin.eof())
     {
-        char query = 0;
-        int key_ = 0;
-
+        char query;
+        int key_;
         std::cin >> query >> key_;
 
-        if (!std::cin.good())
+        if (std::cin.fail())
             break;
 
         switch (query)
@@ -25,11 +24,16 @@ int main ()
                 break;
 
             case end_to_end::Queries::kth_smallest:
-                std::cout << *tree.kth_smallest (key_) << " ";
+            {
+                auto it = tree.begin();
+                std::advance (it, key_ - 1);
+                std::cout << *it << " ";
+                
                 break;
+            } 
 
             case end_to_end::Queries::n_less_than_given:
-                std::cout << tree.n_less_than (key_) << " ";
+                std::cout << std::distance (tree.begin(), tree.lower_bound (key_)) << " ";
                 break;
 
             default:
