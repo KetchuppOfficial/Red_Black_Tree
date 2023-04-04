@@ -549,11 +549,17 @@ public:
 
     size_type n_less_than (iterator it) const
     {
+        if (const_iterator{it.node_} == end())
+            return size();
+            
         return detail::n_less_than (root(), it.node_);
     }
 
     size_type n_less_than (const_iterator it) const
     {
+        if (it == end())
+            return size();
+        
         return detail::n_less_than (root(), it.node_);
     }
 
