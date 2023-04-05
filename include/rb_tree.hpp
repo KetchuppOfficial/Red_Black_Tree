@@ -200,7 +200,7 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
     using color_type = Color_T;
     
     if (x)
-        x->color_ = Color_T::black;
+        x->color_ = color_type::black;
     else    
     {
         while (true)
@@ -211,7 +211,7 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                 {
                     w->color_ = color_type::black;
                     w->parent_->color_ = color_type::red;
-                    detail::left_rotate_plus (w->parent_);
+                    left_rotate_plus (w->parent_);
 
                     if (root == w->left_)
                         root = w;
@@ -239,14 +239,14 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                     {
                         w->left_->color_ = color_type::black;
                         w->color_ = color_type::red;
-                        detail::right_rotate_plus (w);
+                        right_rotate_plus (w);
                         w = w->parent_;
                     }
 
                     w->color_ = w->parent_->color_;
                     w->parent_->color_ = color_type::black;
                     w->right_->color_ = color_type::black;
-                    detail::left_rotate_plus (w->parent_);
+                    left_rotate_plus (w->parent_);
                     break;
                 }
             }
@@ -256,7 +256,7 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                 {
                     w->color_ = color_type::black;
                     w->parent_->color_ = color_type::red;
-                    detail::right_rotate_plus (w->parent_);
+                    right_rotate_plus (w->parent_);
 
                     if (root == w->right_)
                         root = w;
@@ -284,14 +284,14 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                     {
                         w->right_->color_ = color_type::black;
                         w->color_ = color_type::red;
-                        detail::left_rotate_plus (w);
+                        left_rotate_plus (w);
                         w = w->parent_;
                     }
 
                     w->color_ = w->parent_->color_;
                     w->parent_->color_ = color_type::black;
                     w->left_->color_ = color_type::black;
-                    detail::right_rotate_plus (w->parent_);
+                    right_rotate_plus (w->parent_);
                     break;
                 }
             }
