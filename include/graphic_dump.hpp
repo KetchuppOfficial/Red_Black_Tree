@@ -13,6 +13,7 @@ namespace detail
 {
 
 template<typename Node_T>
+requires Binary_Tree_Node<Node_T>
 void graphic_dump (std::ostream &os, const Node_T *begin, const Node_T *end)
 {
     assert (begin && end);
