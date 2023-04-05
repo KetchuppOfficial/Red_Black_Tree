@@ -217,7 +217,7 @@ Node_T *predecessor (Node_T *node) noexcept
 // Sometimes root_ can be affected. So it has to be changed if necessary
 template<typename Node_T>
 requires Binary_Tree_Node_Base<Node_T>
-void left_rotate (Node_T *x)
+void left_rotate (Node_T *x) noexcept
 {
     assert (x && x->right_);
 
@@ -240,7 +240,7 @@ void left_rotate (Node_T *x)
 }
 
 template<typename Key_T>
-void left_rotate_plus (ARB_Node<Key_T> *x)
+void left_rotate_plus (ARB_Node<Key_T> *x) noexcept
 {
     using size_type = typename ARB_Node<Key_T>::size_type;
     
@@ -262,7 +262,7 @@ void left_rotate_plus (ARB_Node<Key_T> *x)
 // Sometimes root_ can be affected. So it has to be changed if necessary
 template <typename Node_T>
 requires Binary_Tree_Node_Base<Node_T>
-void right_rotate (Node_T *x)
+void right_rotate (Node_T *x) noexcept
 {
     assert (x && x->left_);
 
@@ -285,7 +285,7 @@ void right_rotate (Node_T *x)
 }
 
 template<typename Key_T>
-void right_rotate_plus (ARB_Node<Key_T> *x)
+void right_rotate_plus (ARB_Node<Key_T> *x) noexcept
 {
     using size_type = typename ARB_Node<Key_T>::size_type;
     
