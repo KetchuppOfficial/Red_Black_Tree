@@ -2,6 +2,7 @@
 #define INCLUDE_GRAPHIC_DUMP_HPP
 
 #include <ostream>
+#include <cassert>
 
 #include "nodes.hpp"
 
@@ -14,6 +15,8 @@ namespace detail
 template<typename Node_T>
 void graphic_dump (std::ostream &os, const Node_T *begin, const Node_T *end)
 {
+    assert (begin && end);
+    
     auto node_dump = [&os](const Node_T *node)
     {
         using color_type = typename Node_T::color_type;
