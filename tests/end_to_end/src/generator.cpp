@@ -44,7 +44,7 @@ int main (int argc, char *argv[])
 
     std::unordered_set<int> keys;
 
-    for (auto query_i = 0, n_keys = 0; query_i != n_queries; ++query_i)
+    for (auto query_i = 0; query_i != n_queries; ++query_i)
     {
         auto query = queries (gen);
 
