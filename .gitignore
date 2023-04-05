@@ -1,5 +1,5 @@
 build/
 TODO
-sandbox/
 bin/
 data/
+*.info
