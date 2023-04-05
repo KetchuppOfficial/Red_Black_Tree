@@ -34,33 +34,33 @@ public:
     reference operator* () const { return node_->key(); }
     pointer operator-> () const { return &node_->key(); }
 
-    tree_iterator &operator++ ()
+    tree_iterator &operator++ () noexcept
     {
         node_ = detail::successor (node_);
         return *this;
     }
     
-    tree_iterator operator++ (int)
+    tree_iterator operator++ (int) noexcept
     {
         auto tmp = *this;
         ++(*this);
         return tmp;
     }
 
-    tree_iterator &operator-- ()
+    tree_iterator &operator-- () noexcept
     {
         node_ = detail::predecessor (node_);
         return *this;
     }
 
-    tree_iterator operator-- (int)
+    tree_iterator operator-- (int) noexcept
     {
         auto tmp = *this;
         --(*this);
         return tmp;
     }
 
-    bool operator== (const tree_iterator &rhs) const { return node_ == rhs.node_; }
+    bool operator== (const tree_iterator &rhs) const noexcept { return node_ == rhs.node_; }
 
     template<typename key_t, typename compare> friend class RB_Tree;
 };
