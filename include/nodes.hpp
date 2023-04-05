@@ -103,8 +103,8 @@ public:
               color_{std::move (rhs.color_)},
               key_{std::move (rhs.key_)} {}
 
-    ARB_Node &operator= (ARB_Node &rhs) noexcept (std::is_nothrow_move_constructible_v<key_type> &&
-                                                  std::is_nothrow_move_assignable_v<key_type>)
+    ARB_Node &operator= (ARB_Node &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_type> &&
+                                                   std::is_nothrow_move_assignable_v<key_type>)
     {
         std::swap (static_cast<base_ &>(*this), static_cast<base_ &>(rhs));
         std::swap (right_, rhs.right_);
