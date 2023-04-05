@@ -3,7 +3,7 @@
 
 #include <ostream>
 
-#include "rb_tree.hpp"
+#include "nodes.hpp"
 
 namespace yLab
 {
