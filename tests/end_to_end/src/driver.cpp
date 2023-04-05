@@ -1,5 +1,7 @@
 #include <iostream>
 #include <exception>
+#include <fstream>
+#include <chrono>
 
 #include "rb_tree.hpp"
 #include "common.hpp"
@@ -7,6 +9,9 @@
 int main ()
 {
     yLab::RB_Tree<int> tree;
+
+    std::ofstream file{"driver.info"};
+    auto start = std::chrono::high_resolution_clock::now();
 
     while (!std::cin.eof())
     {
@@ -38,6 +43,9 @@ int main ()
     }
 
     std::cout << std::endl;
+
+    auto finish = std::chrono::high_resolution_clock::now();
+    file << duration_cast<std::chrono::milliseconds>(finish - start).count() << std::endl;
     
     return 0;
 }
