@@ -9,8 +9,7 @@ namespace yLab
 {
 
 template<typename T>
-concept Binary_Tree_Node = 
-requires { typename T::key_type; } &&
+concept Binary_Tree_Node_Base = 
 requires (T node)
 {
     node.left_;   requires std::same_as<std::remove_const_t<decltype(node.left_)>,
@@ -19,7 +18,13 @@ requires (T node)
                                         std::remove_const_t<T>*>;
     node.parent_; requires std::same_as<std::remove_const_t<decltype(node.parent_)>,
                                         std::remove_const_t<T>*>;
+};
 
+template<typename T>
+concept Binary_Tree_Node = Binary_Tree_Node_Base<T> &&
+requires { typename T::key_type; } &&
+requires (T node)
+{
     { node.key() } -> std::same_as<const typename T::key_type &>;
 };
 
@@ -117,7 +122,7 @@ namespace detail
 {
 
 template<typename Node_T>
-requires Binary_Tree_Node<Node_T>
+requires Binary_Tree_Node_Base<Node_T>
 bool is_left_child (const Node_T *node) noexcept
 {
     assert (node && node->parent_);
@@ -126,7 +131,7 @@ bool is_left_child (const Node_T *node) noexcept
 }
 
 template<typename Node_T>
-requires Binary_Tree_Node<Node_T>
+requires Binary_Tree_Node_Base<Node_T>
 const Node_T *minimum (const Node_T *node) noexcept
 {
     assert (node);
@@ -138,13 +143,14 @@ const Node_T *minimum (const Node_T *node) noexcept
 }
 
 template<typename Node_T>
+requires Binary_Tree_Node_Base<Node_T>
 Node_T *minimum (Node_T *node) noexcept
 {
     return const_cast<Node_T *>(minimum (static_cast<const Node_T *>(node)));
 }
 
 template<typename Node_T>
-requires Binary_Tree_Node<Node_T>
+requires Binary_Tree_Node_Base<Node_T>
 const Node_T *maximum (const Node_T *node) noexcept
 {
     assert (node);
@@ -156,13 +162,14 @@ const Node_T *maximum (const Node_T *node) noexcept
 }
 
 template<typename Node_T>
+requires Binary_Tree_Node_Base<Node_T>
 Node_T *maximum (Node_T *node) noexcept
 {
     return const_cast<Node_T *>(maximum (static_cast<const Node_T *>(node)));
 }
 
 template<typename Node_T>
-requires Binary_Tree_Node<Node_T>
+requires Binary_Tree_Node_Base<Node_T>
 const Node_T *successor (const Node_T *node) noexcept
 {
     assert (node);
@@ -179,6 +186,7 @@ const Node_T *successor (const Node_T *node) noexcept
 }
 
 template<typename Node_T>
+requires Binary_Tree_Node_Base<Node_T>
 Node_T *successor (Node_T *node) noexcept
 {
     return const_cast<Node_T *>(successor (static_cast<const Node_T *>(node)));
@@ -200,6 +208,7 @@ const Node_T *predecessor (const Node_T *node) noexcept
 }
 
 template<typename Node_T>
+requires Binary_Tree_Node_Base<Node_T>
 Node_T *predecessor (Node_T *node) noexcept
 {
     return const_cast<Node_T *>(predecessor (static_cast<const Node_T *>(node)));
@@ -207,7 +216,7 @@ Node_T *predecessor (Node_T *node) noexcept
 
 // Sometimes root_ can be affected. So it has to be changed if necessary
 template<typename Node_T>
-requires Binary_Tree_Node<Node_T>
+requires Binary_Tree_Node_Base<Node_T>
 void left_rotate (Node_T *x)
 {
     assert (x && x->right_);
@@ -252,7 +261,7 @@ void left_rotate_plus (ARB_Node<Key_T> *x)
 
 // Sometimes root_ can be affected. So it has to be changed if necessary
 template <typename Node_T>
-requires Binary_Tree_Node<Node_T>
+requires Binary_Tree_Node_Base<Node_T>
 void right_rotate (Node_T *x)
 {
     assert (x && x->left_);
