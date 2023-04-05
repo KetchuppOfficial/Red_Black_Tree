@@ -40,7 +40,7 @@ int main (int argc, char *argv[])
     std::random_device rd;
     std::mt19937_64 gen{rd()};
     std::discrete_distribution<int> queries = {key_weight, kths_weight, nltg_weight};
-    std::uniform_int_distribution<int> key {0, 50};
+    std::uniform_int_distribution<int> key {};
 
     std::unordered_set<int> keys;
 
