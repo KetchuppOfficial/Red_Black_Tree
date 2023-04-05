@@ -177,8 +177,6 @@ const Node_T *successor (const Node_T *node) noexcept
     if (node->right_)
         return minimum (node->right_);
 
-    // If there is no right subtree of root_, than root->parent_->left == root_.
-    // It implies that while loop body will not execute
     while (!is_left_child (node))
         node = node->parent_;
 
@@ -214,7 +212,6 @@ Node_T *predecessor (Node_T *node) noexcept
     return const_cast<Node_T *>(predecessor (static_cast<const Node_T *>(node)));
 }
 
-// Sometimes root_ can be affected. So it has to be changed if necessary
 template<typename Node_T>
 requires Binary_Tree_Node_Base<Node_T>
 void left_rotate (Node_T *x) noexcept
@@ -259,7 +256,6 @@ void left_rotate_plus (ARB_Node<Key_T> *x) noexcept
     y->subtree_size_ = x_size + c_size + 1;
 }
 
-// Sometimes root_ can be affected. So it has to be changed if necessary
 template <typename Node_T>
 requires Binary_Tree_Node_Base<Node_T>
 void right_rotate (Node_T *x) noexcept
