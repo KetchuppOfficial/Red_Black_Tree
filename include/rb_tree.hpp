@@ -20,9 +20,6 @@ namespace yLab
 namespace detail
 {
 
-// Doesn't affect tree structure; nodes are only recollored
-// RB_invatiant (end_node_->left_) == true
-// But end_node_->left_ may be different than the value passed as root
 template <typename Node_T>
 void rb_insert_fixup (const Node_T *root, Node_T *new_node)
 {       
@@ -62,7 +59,7 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
         return;
     }
 
-    // (new_node != root_) ==> (root_->color_ == color_type::black)
+    // Further: (new_node != root_) ==> (root_->color_ == color_type::black)
 
     // Checks if "If a node is red, then both its children are black" property violated
     while (new_node != root && new_node->parent_->color_ == color_type::red)
