@@ -66,11 +66,11 @@ void graphic_dump (std::ostream &os, const Node_T *begin, const Node_T *end)
        << " [style = filled, fillcolor = yellow, label = \"end node| "
        << "size: " << end->subtree_size_ << "\"];\n";
 
-    for (auto node_ptr = begin; node_ptr != end; node_ptr = detail::successor (node_ptr))
+    for (auto node_ptr = begin; node_ptr != end; node_ptr = successor (node_ptr))
         node_dump (node_ptr);
 
     os << std::endl;
-    for (auto node_ptr = begin; node_ptr != end; node_ptr = detail::successor (node_ptr))
+    for (auto node_ptr = begin; node_ptr != end; node_ptr = successor (node_ptr))
         arrow_dump (node_ptr);
 
     os << "    node_" << end << " -> node_" << end->left_ << " [color = \"blue\"];\n}\n";
