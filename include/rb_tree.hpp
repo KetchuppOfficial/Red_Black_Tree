@@ -324,8 +324,8 @@ public:
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
     using node_type = ARB_Node<key_type>;
-    using iterator = tree_iterator<key_type, node_type>;
-    using const_iterator = tree_iterator<key_type, const node_type>;
+    using iterator = tree_iterator<key_type, const node_type>;
+    using const_iterator = iterator;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -494,22 +494,15 @@ public:
 
     // Lookup
 
-    iterator find (const key_type &key)
-    {
-        auto node = find (root(), key);
-        return (node) ? iterator{node} : end();
-    }
-
     const_iterator find (const key_type &key) const
     {
         auto node = find (root(), key);
-        return (node) ? iterator{node} : end();
+        return (node) ? const_iterator{node} : end();
     }
 
-    iterator lower_bound (const key_type &key)
+    iterator find (const key_type &key)
     {
-        auto node = lower_bound (root(), key);
-        return (node) ? iterator{node} : end();
+        return static_cast<const RB_Tree &>(*this).find (key);
     }
 
     const_iterator lower_bound (const key_type &key) const
@@ -518,10 +511,9 @@ public:
         return (node) ? const_iterator{node} : end();
     }
 
-    iterator upper_bound (const key_type &key)
+    iterator lower_bound (const key_type &key)
     {
-        auto node = upper_bound (root(), key);
-        return (node) ? iterator{node} : end();
+        return static_cast<const RB_Tree &>(*this).lower_bound (key);
     }
 
     const_iterator upper_bound (const key_type &key) const
@@ -530,16 +522,12 @@ public:
         return (node) ? const_iterator{node} : end();
     }
 
-    bool contains (const key_type &key) const { return find (key) != end(); }
-
-    iterator kth_smallest (size_type k)
+    iterator upper_bound (const key_type &key)
     {
-        if (empty())
-            return end();
-        
-        auto node = detail::kth_smallest (root(), k);
-        return (node) ? iterator{node} : end();
+        return static_cast<const RB_Tree &>(*this).upper_bound (key);
     }
+
+    bool contains (const key_type &key) const { return find (key) != end(); }
 
     const_iterator kth_smallest (size_type k) const
     {
@@ -550,35 +538,21 @@ public:
         return (node) ? const_iterator{node} : end();
     }
 
-    size_type n_less_than (iterator it) const
+    iterator kth_smallest (size_type k)
     {
-        if (const_iterator{it.node_} == end())
-            return size();
-            
-        return detail::n_less_than (root(), it.node_);
-    }
-
-    size_type n_less_than (const_iterator it) const
-    {
-        if (it == end())
-            return size();
-        
-        return detail::n_less_than (root(), it.node_);
+        return static_cast<const RB_Tree &>(*this).kth_smallest (k);
     }
 
     size_type n_less_than (const key_type &key) const
     {
         if (empty())
             return 0;
-        
-        auto &max_key = *--end();
-        if (comp_(max_key, key))
+
+        auto it = lower_bound (key);
+        if (it == end())
             return size();
         else
-        {
-            auto it = lower_bound (key);
-            return n_less_than (it);
-        } 
+            return detail::n_less_than (root(), it.node_); 
     }
 
     #ifdef DEBUG
@@ -611,7 +585,7 @@ public:
 
 private:
 
-    node_ptr end_node () noexcept { return static_cast<node_ptr>(std::addressof (end_node_)); }
+    node_ptr end_node () noexcept{ return static_cast<node_ptr>(std::addressof (end_node_)); }
     const_node_ptr end_node () const noexcept
     {
         return static_cast<const_node_ptr>(std::addressof (end_node_));
@@ -620,7 +594,7 @@ private:
     node_ptr &root () noexcept { return end_node()->left_; }
     const_node_ptr root () const noexcept { return end_node()->left_; }
 
-    node_ptr find (node_ptr node, const key_type &key)
+    const_node_ptr find (const_node_ptr node, const key_type &key) const
     {
         while (node && (comp_(key, node->key()) || comp_(node->key(), key)))
             node = comp_(key, node->key()) ? node->left_ : node->right_;
@@ -628,9 +602,9 @@ private:
         return node;
     }
 
-    const_node_ptr find (const_node_ptr node, const key_type &key) const
+    node_ptr find (node_ptr node, const key_type &key)
     {
-        return const_cast<RB_Tree &>(*this).find (const_cast<node_ptr>(node), key);
+        return static_cast<const RB_Tree &>(*this).find (node, key);
     }
 
     // No need for const overload as find_v2 is used only in insert
@@ -654,9 +628,9 @@ private:
     }
 
     // Finds first element that is not less than key
-    node_ptr lower_bound (node_ptr node, const key_type &key)
+    const_node_ptr lower_bound (const_node_ptr node, const key_type &key) const
     {    
-        node_ptr result = nullptr;
+        const_node_ptr result = nullptr;
         while (node)
         {
             if (!comp_(node->key(), key))
@@ -671,15 +645,15 @@ private:
         return result;
     }
 
-    const_node_ptr lower_bound (const_node_ptr node, const key_type &key) const
+    node_ptr lower_bound (node_ptr node, const key_type &key)
     {
-        return const_cast<RB_Tree &>(*this).lower_bound (const_cast<node_ptr>(node), key);
+        return static_cast<const RB_Tree &>(*this).lower_bound (node, key);
     }
 
     // Finds first element that is greater than key
-    node_ptr upper_bound (node_ptr node, const key_type &key)
+    const_node_ptr upper_bound (const_node_ptr node, const key_type &key) const
     {
-        node_ptr result = nullptr;
+        const_node_ptr result = nullptr;
         while (node)
         {
             if (comp_(key, node->key()))
@@ -694,9 +668,9 @@ private:
         return result;
     }
 
-    const_node_ptr upper_bound (const_node_ptr node, const key_type &key) const
+    node_ptr upper_bound (node_ptr node, const key_type &key)
     {
-        return const_cast<RB_Tree &>(*this).upper_bound (const_cast<node_ptr>(node), key);
+        return static_cast<const RB_Tree &>(*this).upper_bound (node, key);
     }
 
     node_ptr insert_root (const key_type &key)
