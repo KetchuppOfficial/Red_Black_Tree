@@ -6,6 +6,9 @@
 
 #include "common.hpp"
 
+namespace
+{
+
 using args = std::tuple<int, double, double, double>;
 
 args cmd_line_args (int argc, char *argv[])
@@ -32,6 +35,8 @@ args cmd_line_args (int argc, char *argv[])
 
     return std::make_tuple (n_queries, key_weight, kths_weight, nltg_weight);
 }
+
+} // unnamed namespace
 
 int main (int argc, char *argv[])
 {
