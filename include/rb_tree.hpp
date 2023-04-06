@@ -444,23 +444,15 @@ public:
 
     std::pair<iterator, bool> insert (const key_type &key)
     {
-        if (empty())
+        auto [node, parent, side] = find_v2 (root(), key);
+    
+        if (node == nullptr) // No node with such key in the tree
         {
-            auto new_node = insert_root (key);
+            auto new_node = insert_hint_unique (key, parent ? parent : end_node(), side);
             return std::make_pair (iterator{new_node}, true);
         }
         else
-        {
-            auto [node, parent] = find_v2 (root(), key);
-        
-            if (node == nullptr) // No node with such key in the tree
-            {
-                auto new_node = insert_hint_unique (parent, key);
-                return std::make_pair (iterator{new_node}, true);
-            }
-            else
-                return std::make_pair (iterator{node}, false);
-        }
+            return std::make_pair (iterator{node}, false);
     }
 
     template<std::input_iterator it>
@@ -607,24 +599,37 @@ private:
         return static_cast<const RB_Tree &>(*this).find (node, key);
     }
 
+    enum class Side { left, right };
+
     // No need for const overload as find_v2 is used only in insert
-    std::pair<node_ptr, node_ptr> find_v2 (node_ptr node, const key_type &key)
+    std::tuple<node_ptr, node_ptr, Side> find_v2 (node_ptr node, const key_type &key)
     {
         // (parent == nullptr) ==> (key == root().key())
         // (node != nullptr) ==> (parent != nullptr)
 
         node_ptr parent = nullptr;
+        Side side = Side::left; // root is a left child of end_node
 
         while (node)
         {
-            if (!comp_(key, node->key()) && !comp_(node->key(), key))
+            auto is_less = comp_(key, node->key());
+            if (!is_less && !comp_(node->key(), key))
                 break;
             
             parent = node;
-            node = (comp_(key, node->key())) ? node->left_ : node->right_;
+            if (is_less)
+            {
+                node = node->left_;
+                side = Side::left;
+            }
+            else
+            {
+                node = node->right_;
+                side = Side::right;
+            }
         }
 
-        return std::make_pair (node, parent);
+        return std::make_tuple (node, parent, side);
     }
 
     // Finds first element that is not less than key
@@ -673,6 +678,7 @@ private:
         return static_cast<const RB_Tree &>(*this).upper_bound (node, key);
     }
 
+    #if 0
     node_ptr insert_root (const key_type &key)
     {
         auto new_node = new node_type{key, color_type::black};
@@ -685,15 +691,16 @@ private:
 
         return new_node;
     }
+    #endif
 
-    node_ptr insert_hint_unique (node_ptr parent, const key_type &key)
+    node_ptr insert_hint_unique (const key_type &key, node_ptr parent, Side side)
     {
         auto new_node = new node_type{key, color_type::red};
         end_node_.subtree_size_++;
 
         new_node->parent_ = parent;
 
-        if (comp_(key, parent->key()))
+        if (side == Side::left)
             parent->left_ = new_node;
         else
             parent->right_ = new_node;
@@ -711,15 +718,10 @@ private:
 
     void insert_unique (const key_type &key)
     {
-        if (empty())
-            insert_root (key);
-        else
-        {
-            auto [node, parent] = find_v2 (root(), key);
-        
-            if (node == nullptr)
-                insert_hint_unique (parent, key);
-        }
+        auto [node, parent, side] = find_v2 (root(), key);
+    
+        if (node == nullptr)
+            insert_hint_unique (key, parent ? parent : end_node(), side);
     }
 
     void clean_up (node_ptr root)
