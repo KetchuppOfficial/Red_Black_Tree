@@ -92,6 +92,7 @@ private:
 public:
 
     ARB_Node (const key_type &key, color_type color) : color_{color}, key_{key} {}
+    ARB_Node (key_type &&key, color_type color) : color_{color}, key_{key} {}
 
     ARB_Node (const ARB_Node &rhs) = delete;
     ARB_Node &operator= (const ARB_Node &rhs) = delete;
