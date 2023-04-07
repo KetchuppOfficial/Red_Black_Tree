@@ -470,7 +470,7 @@ public:
 
     iterator erase (iterator pos)
     {
-        auto node = pos.node_;
+        auto node = const_cast<node_ptr>(pos.node_);
         ++pos;
 
         if (node == leftmost_)
