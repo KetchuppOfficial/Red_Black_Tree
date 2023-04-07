@@ -364,7 +364,7 @@ public:
         {
             try
             {
-                insert (key);
+                insert_unique (key);
             }
             catch (...)
             {
