@@ -108,91 +108,6 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
     }
 }
 
-template<typename Node_T, typename Color_T>
-Node_T *erase (Node_T *root, Node_T *z) noexcept
-{    
-    assert (root && z);
-    
-    auto y = (z->left_ == nullptr || z->right_ == nullptr) ? z : successor (z);
-    auto x = (y->left_ == nullptr) ? y->right_ : y->left_;
-    auto w = static_cast<Node_T *>(nullptr);
-
-    auto yp = y->parent_;
-    
-    if (is_left_child (y))
-    {
-        yp->left_ = x;
-        
-        if (y != root)
-            w = yp->right_;
-        else
-            root = x;
-    }
-    else
-    {
-        yp->right_ = x;
-        w = yp->left_;
-    }
-
-    if (x)
-    {
-        x->parent_ = yp;
-        yp->subtree_size_ += (x->subtree_size_ - y->subtree_size_);
-    }
-    else
-        yp->subtree_size_ -= y->subtree_size_;
-
-    auto y_orig_color = y->color_;
-
-    if (y != z)
-    {
-        auto zl = z->left_;
-        auto zr = z->right_;
-
-        y->left_ = zl;
-        y->right_ = zr;
-
-        y->left_->parent_ = y;
-        if (y->right_)
-            y->right_->parent_ = y;
-
-        y->color_ = z->color_;
-
-        y->subtree_size_ = (zl ? z->left_->subtree_size_ : 0) +
-                           (zr ? z->right_->subtree_size_ : 0) + 1;
-
-        auto zp = z->parent_;
-        if (is_left_child (z))
-        {
-            zp->left_ = y;
-            zp->subtree_size_ = 1 + y->subtree_size_ +
-                                ((zp->right_) ? zp->right_->subtree_size_ : 0);
-        }
-        else
-        {
-            zp->right_ = y;
-            zp->subtree_size_ = 1 + y->subtree_size_ +
-                                ((zp->left_) ? zp->left_->subtree_size_ : 0);
-        }
-
-        y->parent_ = zp;
-
-        if (z == root)
-            root = y;
-    }
-    else
-    {
-        auto end_node = root->parent_;
-        for (auto node = yp->parent_; node != end_node; node = node->parent_)
-            node->subtree_size_--;
-    }
-
-    if (y_orig_color == Color_T::black && root)
-        root = rb_erase_fixup<Node_T, Color_T> (root, x, w);
-
-    return root;
-}
-
 // Doesn't affect tree structure; nodes are only recollored
 template<typename Node_T, typename Color_T>
 Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
@@ -301,6 +216,91 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
     return root;
 }
 
+template<typename Node_T, typename Color_T>
+Node_T *erase (Node_T *root, Node_T *z) noexcept
+{    
+    assert (root && z);
+    
+    auto y = (z->left_ == nullptr || z->right_ == nullptr) ? z : successor (z);
+    auto x = (y->left_ == nullptr) ? y->right_ : y->left_;
+    auto w = static_cast<Node_T *>(nullptr);
+
+    auto yp = y->parent_;
+    
+    if (is_left_child (y))
+    {
+        yp->left_ = x;
+        
+        if (y != root)
+            w = yp->right_;
+        else
+            root = x;
+    }
+    else
+    {
+        yp->right_ = x;
+        w = yp->left_;
+    }
+
+    if (x)
+    {
+        x->parent_ = yp;
+        yp->subtree_size_ += (x->subtree_size_ - y->subtree_size_);
+    }
+    else
+        yp->subtree_size_ -= y->subtree_size_;
+
+    auto y_orig_color = y->color_;
+
+    if (y != z)
+    {
+        auto zl = z->left_;
+        auto zr = z->right_;
+
+        y->left_ = zl;
+        y->right_ = zr;
+
+        y->left_->parent_ = y;
+        if (y->right_)
+            y->right_->parent_ = y;
+
+        y->color_ = z->color_;
+
+        y->subtree_size_ = (zl ? z->left_->subtree_size_ : 0) +
+                           (zr ? z->right_->subtree_size_ : 0) + 1;
+
+        auto zp = z->parent_;
+        if (is_left_child (z))
+        {
+            zp->left_ = y;
+            zp->subtree_size_ = 1 + y->subtree_size_ +
+                                ((zp->right_) ? zp->right_->subtree_size_ : 0);
+        }
+        else
+        {
+            zp->right_ = y;
+            zp->subtree_size_ = 1 + y->subtree_size_ +
+                                ((zp->left_) ? zp->left_->subtree_size_ : 0);
+        }
+
+        y->parent_ = zp;
+
+        if (z == root)
+            root = y;
+    }
+    else
+    {
+        auto end_node = root->parent_;
+        for (auto node = yp->parent_; node != end_node; node = node->parent_)
+            node->subtree_size_--;
+    }
+
+    if (y_orig_color == Color_T::black && root)
+        root = rb_erase_fixup<Node_T, Color_T> (root, x, w);
+
+    return root;
+}
+
 } // namespace detail
 
 /*
@@ -324,8 +324,8 @@ public:
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
     using node_type = ARB_Node<key_type>;
-    using iterator = tree_iterator<key_type, const node_type>;
-    using const_iterator = iterator;
+    using const_iterator = tree_iterator<key_type, node_type>;
+    using iterator = const_iterator;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -337,7 +337,7 @@ private:
     using end_node_type = End_Node<node_type>;
 
     end_node_type end_node_{};
-    node_ptr leftmost_  = end_node();
+    const_node_ptr leftmost_  = end_node();
     key_compare comp_;
 
 public:
@@ -577,7 +577,7 @@ public:
 
 private:
 
-    node_ptr end_node () noexcept{ return static_cast<node_ptr>(std::addressof (end_node_)); }
+    node_ptr end_node () noexcept { return static_cast<node_ptr>(std::addressof (end_node_)); }
     const_node_ptr end_node () const noexcept
     {
         return static_cast<const_node_ptr>(std::addressof (end_node_));

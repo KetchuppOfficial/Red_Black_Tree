@@ -22,14 +22,14 @@ public:
 
 private:
 
-    using node_ptr = Node_T *;
+    using const_node_ptr = const Node_T *;
     
-    node_ptr node_;
+    const_node_ptr node_;
 
 public:
 
     tree_iterator () = default;
-    explicit tree_iterator (node_ptr node) noexcept : node_{node} {}
+    explicit tree_iterator (const_node_ptr node) noexcept : node_{node} {}
 
     reference operator* () const { return node_->key(); }
     pointer operator-> () const { return &node_->key(); }
