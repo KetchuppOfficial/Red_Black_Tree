@@ -484,6 +484,18 @@ public:
         return pos;
     }
 
+    size_type erase (const key_type &key)
+    {
+        auto it = find (key);
+        if (it == end())
+            return 0;
+        else
+        {
+            erase (it);
+            return 1;
+        }
+    }
+
     // Lookup
 
     const_iterator find (const key_type &key) const
