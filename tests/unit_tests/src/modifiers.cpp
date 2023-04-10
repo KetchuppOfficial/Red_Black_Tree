@@ -40,6 +40,7 @@ TEST (Modifiers, Insert_Range)
     tree.insert (model.begin(), model.end());
 
     EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin()));
+    EXPECT_TRUE (std::equal (model.begin(), model.end(), tree.begin()));
 }
 
 TEST (Modifiers, Insert_By_Initializer_List)
@@ -50,6 +51,7 @@ TEST (Modifiers, Insert_By_Initializer_List)
     tree.insert ({1, 6, 3, 7, 1, 8, 5, 3, 8, 35162, -46, 35});
 
     EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin()));
+    EXPECT_TRUE (std::equal (model.begin(), model.end(), tree.begin()));
 }
 
 TEST (Modifiers, Erase_By_Iterator)
@@ -62,6 +64,7 @@ TEST (Modifiers, Erase_By_Iterator)
     model.erase (15);
 
     EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin()));
+    EXPECT_TRUE (std::equal (model.begin(), model.end(), tree.begin()));
 }
 
 TEST (Modifiers, Erase_By_Key)
@@ -74,6 +77,7 @@ TEST (Modifiers, Erase_By_Key)
 
     model.erase (11);
     EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin()));
+    EXPECT_TRUE (std::equal (model.begin(), model.end(), tree.begin()));
 
     is_erased = tree.erase (-1);
     EXPECT_EQ (is_erased, 0);
