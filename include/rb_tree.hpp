@@ -434,9 +434,9 @@ public:
     void swap (RB_Tree &other) noexcept (std::is_nothrow_swappable_v<key_compare> &&
                                          std::is_nothrow_swappable_v<end_node_type>)
     {
-        std::swap (end_node_, rhs.end_node_);
-        std::swap (leftmost_, rhs.leftmost_);
-        std::swap (comp_, rhs.comp_);
+        std::swap (end_node_, other.end_node_);
+        std::swap (leftmost_, other.leftmost_);
+        std::swap (comp_, other.comp_);
     }
 
     void clear ()
