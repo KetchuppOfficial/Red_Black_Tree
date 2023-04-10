@@ -17,16 +17,16 @@ TEST (Constructors, Copy_Constructor)
 {
     yLab::RB_Tree<int> tree {1, 2, 3, 4, 5};
 
-    auto tree2 {tree};
-    EXPECT_TRUE (std::equal (tree.begin(), tree.end(), tree2.begin()));
+    auto tree_2 {tree};
+    EXPECT_EQ (tree, tree_2);
 }
 
-#if 0
 TEST (Constructors, Move_Constructor)
 {
-    yLab::RB_Tree<int> tree;
-    tree.insert({1, 2, 3, 4, 5});
+    yLab::RB_Tree tree = {3, 2, 1, 4, 5};
+    std::vector vec = {1, 2, 3, 4, 5};
 
-    auto tree2 = std::move (tree);
+    auto tree_2 = std::move (tree);
+    EXPECT_EQ (tree_2.size(), 5);
+    EXPECT_TRUE (std::equal (tree.begin(), tree.end(), vec.begin()));
 }
-#endif
