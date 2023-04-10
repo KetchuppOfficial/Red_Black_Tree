@@ -542,7 +542,7 @@ public:
 
     const_iterator kth_smallest (size_type k) const
     {
-        if (empty())
+        if (empty() || k == 0)
             return end();
         
         auto node = detail::kth_smallest (root(), k);
