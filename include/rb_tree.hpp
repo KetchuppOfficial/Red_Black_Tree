@@ -6,6 +6,7 @@
 #include <functional>
 #include <type_traits>
 #include <cassert>
+#include <compare>
 
 #include "nodes.hpp"
 #include "tree_iterator.hpp"
@@ -754,6 +755,20 @@ private:
         }
     }
 };
+
+template<typename Key_T, typename Compare>
+bool operator== (const RB_Tree<Key_T, Compare> &lhs, const RB_Tree<Key_T, Compare> &rhs)
+{
+    return (lhs.size() == rhs.size()) &&
+           (std::equal (lhs.begin(), lhs.end(), rhs.begin()));
+}
+
+template<typename Key_T, typename Compare>
+auto operator<=> (const RB_Tree<Key_T, Compare> &lhs, const RB_Tree<Key_T, Compare> &rhs)
+-> decltype (std::compare_three_way{}(*lhs.begin(), *rhs.begin()))
+{
+    return std::lexicographical_compare_three_way (lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
 
 } // namespace yLab
 
