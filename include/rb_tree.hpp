@@ -445,6 +445,8 @@ public:
 
         leftmost_ = end_node();
         root() = nullptr;
+
+        end_node_.subtree_size_ = 1;
     }
 
     std::pair<iterator, bool> insert (const key_type &key)
