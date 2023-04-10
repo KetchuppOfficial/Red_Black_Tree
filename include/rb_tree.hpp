@@ -388,12 +388,10 @@ public:
               leftmost_{std::exchange (rhs.leftmost_, rhs.end_node())},
               comp_{std::move (rhs.comp_)} {}
 
-    RB_Tree &operator= (RB_Tree &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_compare> &&
-                                                 std::is_nothrow_move_assignable_v<key_compare>)
+    RB_Tree &operator= (RB_Tree &&rhs) noexcept (std::is_nothrow_swappable_v<key_compare> &&
+                                                 std::is_nothrow_swappable_v<end_node_type>)
     {
-        std::swap (end_node_, rhs.end_node_);
-        std::swap (leftmost_, rhs.leftmost_);
-        std::swap (comp_, rhs.comp_);
+        swap (rhs);
 
         return *this;
     }
@@ -433,7 +431,13 @@ public:
 
     // Modifiers
 
-    void swap (RB_Tree &other) { std::swap (*this, other); }
+    void swap (RB_Tree &other) noexcept (std::is_nothrow_swappable_v<key_compare> &&
+                                         std::is_nothrow_swappable_v<end_node_type>)
+    {
+        std::swap (end_node_, rhs.end_node_);
+        std::swap (leftmost_, rhs.leftmost_);
+        std::swap (comp_, rhs.comp_);
+    }
 
     void clear ()
     {
