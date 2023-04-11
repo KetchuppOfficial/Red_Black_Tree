@@ -109,7 +109,7 @@ public:
     {
         std::swap (static_cast<base_ &>(*this), static_cast<base_ &>(rhs));
         std::swap (right_, rhs.right_);
-        std::swap (parent_, rhs.right_);
+        std::swap (parent_, rhs.parent_);
         std::swap (color_, rhs.color_);
         std::swap (key_, rhs.key_);
         
