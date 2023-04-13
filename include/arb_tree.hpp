@@ -423,12 +423,12 @@ public:
     }
 
     ARB_Tree (ARB_Tree &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_compare>)
-            : end_node_{std::move (rhs.end_node_)},
-              leftmost_{std::exchange (rhs.leftmost_, &rhs.end_node_)},
-              comp_{std::move (rhs.comp_)} {}
+             : end_node_{std::move (rhs.end_node_)},
+               leftmost_{std::exchange (rhs.leftmost_, &rhs.end_node_)},
+               comp_{std::move (rhs.comp_)} {}
 
     ARB_Tree &operator= (ARB_Tree &&rhs) noexcept (std::is_nothrow_swappable_v<key_compare> &&
-                                                 std::is_nothrow_swappable_v<end_node_type>)
+                                                  std::is_nothrow_swappable_v<end_node_type>)
     {
         swap (rhs);
 
