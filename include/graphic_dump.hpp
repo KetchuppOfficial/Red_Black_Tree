@@ -23,21 +23,23 @@ void graphic_dump (std::ostream &os, const Node_T *begin, const End_Node<Node_T>
     auto node_dump = [&os](node_ptr node)
     {
         using color_type = typename Node_T::color_type;
-        
-        os << "    node_" << node
-           << " [style = filled, fillcolor = "
-           << ((node->color_ == color_type::black) ? "black, fontcolor = white"
-                                                   : "red, fontcolor = black")
-           << ", label = \"key: " << node->key()
+
+        os << "    node_" << node << " [shape = record, ";
+        if (node->color_ == color_type::black)
+            os << "color = red, style = filled, fillcolor = black, fontcolor = white";
+        else
+            os << "color = black, style = filled, fillcolor = red, fontcolor = black";
+
+        os << ", label = \"key: " << node->key()
            << "| size: " << node->subtree_size_ << "\"];\n";
 
         if (node->left_ == nullptr)
-            os << "\tleft_nil_node_" << node
-               << " [style = filled, fillcolor = black, fontcolor = white, label = \"nil\"];\n";
+            os << "\tleft_nil_node_" << node << " [shape = record, "
+               << "color = red, style = filled, fillcolor = black, fontcolor = white, label = \"nil\"];\n";
 
         if (node->right_ == nullptr)
-            os << "\tright_nil_node_" << node
-               << " [style = filled, fillcolor = black, fontcolor = white, label = \"nil\"];\n";
+            os << "\tright_nil_node_" << node << " [shape = record, "
+               << "color = red, style = filled, fillcolor = black, fontcolor = white, label = \"nil\"];\n";
     };
 
     auto arrow_dump = [&os](node_ptr node)
@@ -62,11 +64,11 @@ void graphic_dump (std::ostream &os, const Node_T *begin, const End_Node<Node_T>
 
     os << "digraph Tree\n"
           "{\n"
-          "    rankdir = TB;\n"
+          "    rankdir = TB;\n";
           "    node [shape = record];\n\n";
 
     os << "    node_" << end
-       << " [style = filled, fillcolor = yellow, label = \"end node| "
+       << " [color = black, style = filled, fillcolor = yellow, label = \"end node| "
        << "size: " << end->subtree_size_ << "\"];\n";
 
     for (end_node_ptr node = begin; node != end; node = successor (static_cast<node_ptr>(node)))

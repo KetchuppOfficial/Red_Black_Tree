@@ -46,3 +46,7 @@ generates **N** random queries approximately **wI/N** of which are insert querie
 P.s. all above mentioned files locate in test/end_to_end/data directory.
 
 P.p.s. **driver** and **ans_generator** measure the time spent on running a test. This information is saved in **driver.info** and **ans.info** files.
+
+# Behold... Advanced Red-black tree
+
+![dump](/images/dump_example.png)
