@@ -26,6 +26,8 @@ cmake --build build [--target <tgt>]
 
 If --target option is omitted, all targets will be built.
 
+I strongly suggest to build the project in *Release* mode. That is because all function that somehow affect the structure of the tree contain checking whether the invariants have been violated. Such checking takes much time.
+
 ## How to run unit tests
 ```bash
 ctest --test-dir build
@@ -44,4 +46,3 @@ generates **N** random queries approximately **wI/N** of which are insert querie
 P.s. all above mentioned files locate in test/end_to_end/data directory.
 
 P.p.s. **driver** and **ans_generator** measure the time spent on running a test. This information is saved in **driver.info** and **ans.info** files.
-
