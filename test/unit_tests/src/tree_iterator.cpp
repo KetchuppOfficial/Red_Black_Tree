@@ -12,7 +12,7 @@ TEST (Iterators, Check_Iterator_Concept)
 
 TEST (Iterators, Preincrement)
 {
-    yLab::RB_Tree tree = {1, 2, 3, 4, 5};
+    yLab::ARB_Tree tree = {1, 2, 3, 4, 5};
     auto it_1 = tree.find (2);
     auto it_2 = tree.find (3);
     auto it_3 = ++it_1;
@@ -23,7 +23,7 @@ TEST (Iterators, Preincrement)
 
 TEST (Iterators, Postincrement)
 {
-    yLab::RB_Tree tree = {1, 2, 3, 4, 5};
+    yLab::ARB_Tree tree = {1, 2, 3, 4, 5};
     auto it_1 = tree.find (2);
     auto it_2 = tree.find (3);
     auto it_1_copy = it_1;
@@ -35,7 +35,7 @@ TEST (Iterators, Postincrement)
 
 TEST (Iterators, Predecrement)
 {
-    yLab::RB_Tree tree = {1, 2, 3, 4, 5};
+    yLab::ARB_Tree tree = {1, 2, 3, 4, 5};
     auto it_1 = tree.find (2);
     auto it_2 = tree.find (1);
     auto it_3 = --it_1;
@@ -46,7 +46,7 @@ TEST (Iterators, Predecrement)
 
 TEST (Iterators, Postdecrement)
 {
-    yLab::RB_Tree tree = {1, 2, 3, 4, 5};
+    yLab::ARB_Tree tree = {1, 2, 3, 4, 5};
     auto it_1 = tree.find (2);
     auto it_2 = tree.find (1);
     auto it_1_copy = it_1;
@@ -58,7 +58,7 @@ TEST (Iterators, Postdecrement)
 
 TEST (Iterators, Dereference)
 {
-    yLab::RB_Tree tree = {1, 2, 3, 4, 5};
+    yLab::ARB_Tree tree = {1, 2, 3, 4, 5};
 
     auto elem = 1;
     for (auto it = tree.begin(), ite = tree.end(); it != ite; ++it, ++elem)
@@ -67,7 +67,7 @@ TEST (Iterators, Dereference)
 
 TEST (Iterators, Arrow)
 {
-    yLab::RB_Tree<std::pair<int, int>> tree = {{1, -1}, {2, -2}, {3, -3}};
+    yLab::ARB_Tree<std::pair<int, int>> tree = {{1, -1}, {2, -2}, {3, -3}};
 
     auto elem = 1;
     for (auto it = tree.begin(), ite = tree.end(); it != ite; ++it, ++elem)

@@ -342,7 +342,7 @@ void erase (Node_T *root, Node_T *z) noexcept
  *    left_ that points back to root_ (end_node)
  */
 template <typename Key_T, typename Compare = std::less<Key_T>>
-class RB_Tree final
+class ARB_Tree final
 {
 public:
 
@@ -382,23 +382,23 @@ private:
 
 public:
 
-    RB_Tree () : RB_Tree{key_compare{}} {}
+    ARB_Tree () : ARB_Tree{key_compare{}} {}
 
-    explicit RB_Tree (const key_compare &comp) : comp_{comp} {}
+    explicit ARB_Tree (const key_compare &comp) : comp_{comp} {}
 
     template<std::input_iterator it>
-    RB_Tree (it first, it last, const key_compare &comp = key_compare{}) : comp_{comp}
+    ARB_Tree (it first, it last, const key_compare &comp = key_compare{}) : comp_{comp}
     {
         insert (first, last);
     }
 
-    RB_Tree (std::initializer_list<value_type> ilist, const key_compare &comp = key_compare{}) 
+    ARB_Tree (std::initializer_list<value_type> ilist, const key_compare &comp = key_compare{}) 
             : comp_{comp}
     {
         insert (ilist);
     }
 
-    RB_Tree (const RB_Tree &rhs) : comp_{rhs.comp_}
+    ARB_Tree (const ARB_Tree &rhs) : comp_{rhs.comp_}
     {
         for (auto &&key : rhs)
         {
@@ -414,7 +414,7 @@ public:
         }
     }
 
-    RB_Tree &operator= (const RB_Tree &rhs)
+    ARB_Tree &operator= (const ARB_Tree &rhs)
     {
         auto tmp_tree{rhs};
         std::swap (*this, tmp_tree);
@@ -422,12 +422,12 @@ public:
         return *this;
     }
 
-    RB_Tree (RB_Tree &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_compare>)
+    ARB_Tree (ARB_Tree &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_compare>)
             : end_node_{std::move (rhs.end_node_)},
               leftmost_{std::exchange (rhs.leftmost_, &rhs.end_node_)},
               comp_{std::move (rhs.comp_)} {}
 
-    RB_Tree &operator= (RB_Tree &&rhs) noexcept (std::is_nothrow_swappable_v<key_compare> &&
+    ARB_Tree &operator= (ARB_Tree &&rhs) noexcept (std::is_nothrow_swappable_v<key_compare> &&
                                                  std::is_nothrow_swappable_v<end_node_type>)
     {
         swap (rhs);
@@ -435,7 +435,7 @@ public:
         return *this;
     }
 
-    ~RB_Tree ()
+    ~ARB_Tree ()
     {
         clean_up (root());
     }
@@ -470,7 +470,7 @@ public:
 
     // Modifiers
 
-    void swap (RB_Tree &other) noexcept (std::is_nothrow_swappable_v<key_compare> &&
+    void swap (ARB_Tree &other) noexcept (std::is_nothrow_swappable_v<key_compare> &&
                                          std::is_nothrow_swappable_v<end_node_type>)
     {
         std::swap (end_node_, other.end_node_);
@@ -554,7 +554,7 @@ public:
 
     iterator find (const key_type &key)
     {
-        return static_cast<const RB_Tree &>(*this).find (key);
+        return static_cast<const ARB_Tree &>(*this).find (key);
     }
 
     const_iterator lower_bound (const key_type &key) const
@@ -565,7 +565,7 @@ public:
 
     iterator lower_bound (const key_type &key)
     {
-        return static_cast<const RB_Tree &>(*this).lower_bound (key);
+        return static_cast<const ARB_Tree &>(*this).lower_bound (key);
     }
 
     const_iterator upper_bound (const key_type &key) const
@@ -576,7 +576,7 @@ public:
 
     iterator upper_bound (const key_type &key)
     {
-        return static_cast<const RB_Tree &>(*this).upper_bound (key);
+        return static_cast<const ARB_Tree &>(*this).upper_bound (key);
     }
 
     bool contains (const key_type &key) const { return find (key) != end(); }
@@ -594,7 +594,7 @@ public:
 
     iterator kth_smallest (size_type k)
     {
-        return static_cast<const RB_Tree &>(*this).kth_smallest (k);
+        return static_cast<const ARB_Tree &>(*this).kth_smallest (k);
     }
 
     size_type n_less_than (const key_type &key) const
@@ -639,7 +639,7 @@ private:
 
     node_ptr find (node_ptr node, const key_type &key)
     {
-        return static_cast<const RB_Tree &>(*this).find (node, key);
+        return static_cast<const ARB_Tree &>(*this).find (node, key);
     }
 
     enum class Side { left, right };
@@ -695,7 +695,7 @@ private:
 
     node_ptr lower_bound (node_ptr node, const key_type &key)
     {
-        return static_cast<const RB_Tree &>(*this).lower_bound (node, key);
+        return static_cast<const ARB_Tree &>(*this).lower_bound (node, key);
     }
 
     // Finds first element that is greater than key
@@ -718,7 +718,7 @@ private:
 
     node_ptr upper_bound (node_ptr node, const key_type &key)
     {
-        return static_cast<const RB_Tree &>(*this).upper_bound (node, key);
+        return static_cast<const ARB_Tree &>(*this).upper_bound (node, key);
     }
 
     node_ptr insert_hint_unique (const key_type &key, end_node_ptr parent, Side side)
@@ -815,14 +815,14 @@ private:
 };
 
 template<typename Key_T, typename Compare>
-bool operator== (const RB_Tree<Key_T, Compare> &lhs, const RB_Tree<Key_T, Compare> &rhs)
+bool operator== (const ARB_Tree<Key_T, Compare> &lhs, const ARB_Tree<Key_T, Compare> &rhs)
 {
     return (lhs.size() == rhs.size()) &&
            (std::equal (lhs.begin(), lhs.end(), rhs.begin()));
 }
 
 template<typename Key_T, typename Compare>
-auto operator<=> (const RB_Tree<Key_T, Compare> &lhs, const RB_Tree<Key_T, Compare> &rhs)
+auto operator<=> (const ARB_Tree<Key_T, Compare> &lhs, const ARB_Tree<Key_T, Compare> &rhs)
 -> decltype (std::compare_three_way{}(*lhs.begin(), *rhs.begin()))
 {
     return std::lexicographical_compare_three_way (lhs.begin(), lhs.end(), rhs.begin(), rhs.end());

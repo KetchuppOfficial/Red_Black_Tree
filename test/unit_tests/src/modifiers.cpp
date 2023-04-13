@@ -7,8 +7,8 @@
 
 TEST (Modifiers, Clear)
 {
-    yLab::RB_Tree tree = {1, 2, 3, 4, 5, 6};
-    yLab::RB_Tree<int> empty_tree;
+    yLab::ARB_Tree tree = {1, 2, 3, 4, 5, 6};
+    yLab::ARB_Tree<int> empty_tree;
     tree.clear();
 
     EXPECT_EQ (tree, empty_tree);
@@ -16,7 +16,7 @@ TEST (Modifiers, Clear)
 
 TEST (Modifiers, Insert_By_Key)
 {
-    yLab::RB_Tree<int> tree;
+    yLab::ARB_Tree<int> tree;
 
     auto [it, flag] = tree.insert (1);
 
@@ -39,7 +39,7 @@ TEST (Modifiers, Insert_Range)
 {
     std::set model = {1, 6, 3, 7, 1, 8, 5, 3, 8, 35162, -46, 35};    
 
-    yLab::RB_Tree<int> tree;
+    yLab::ARB_Tree<int> tree;
     tree.insert (model.begin(), model.end());
 
     EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin()));
@@ -50,7 +50,7 @@ TEST (Modifiers, Insert_By_Initializer_List)
 {
     std::set model = {1, 6, 3, 7, 1, 8, 5, 3, 8, 35162, -46, 35};    
 
-    yLab::RB_Tree<int> tree;
+    yLab::ARB_Tree<int> tree;
     tree.insert ({1, 6, 3, 7, 1, 8, 5, 3, 8, 35162, -46, 35});
 
     EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin()));
@@ -59,7 +59,7 @@ TEST (Modifiers, Insert_By_Initializer_List)
 
 TEST (Modifiers, Erase_By_Iterator)
 {
-    yLab::RB_Tree tree = {15, 2, 1, 8, 3, 5, 7, 9, 4, 11};
+    yLab::ARB_Tree tree = {15, 2, 1, 8, 3, 5, 7, 9, 4, 11};
     std::set<int> model{tree.begin(), tree.end()};
 
     auto it = tree.find (15);
@@ -77,7 +77,7 @@ TEST (Modifiers, Erase_By_Key)
 
     for (auto key = 1; key != vec.size() + 1; ++key)
     {
-        yLab::RB_Tree<int> tree{vec.begin(), vec.end()};
+        yLab::ARB_Tree<int> tree{vec.begin(), vec.end()};
         std::set<int> model{vec.begin(), vec.end()};
 
         auto is_erased = tree.erase (key);
@@ -93,8 +93,8 @@ TEST (Modifiers, Erase_By_Key)
         EXPECT_TRUE (std::equal (model.begin(), model.end(), tree.begin()));
     }
 
-    yLab::RB_Tree tree = {1};
-    yLab::RB_Tree<int> empty_tree;
+    yLab::ARB_Tree tree = {1};
+    yLab::ARB_Tree<int> empty_tree;
 
     tree.erase (1);
     EXPECT_EQ (tree, empty_tree);

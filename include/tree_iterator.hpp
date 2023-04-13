@@ -62,7 +62,7 @@ public:
 
     bool operator== (const tree_iterator &rhs) const noexcept { return node_ == rhs.node_; }
 
-    template<typename key_t, typename compare> friend class RB_Tree;
+    template<typename key_t, typename compare> friend class ARB_Tree;
 };
 
 } // namespace yLab

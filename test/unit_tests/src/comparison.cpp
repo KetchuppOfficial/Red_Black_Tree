@@ -4,11 +4,11 @@
 
 TEST (Comparison, Equality)
 {
-    yLab::RB_Tree tree_1 = {1, 2, 3, 4, 5, 6};
-    yLab::RB_Tree tree_2 = {1, 2, 3, 4, 5};
-    yLab::RB_Tree tree_3 = {1, 2, 3, 4, 5, 6, 7};
+    yLab::ARB_Tree tree_1 = {1, 2, 3, 4, 5, 6};
+    yLab::ARB_Tree tree_2 = {1, 2, 3, 4, 5};
+    yLab::ARB_Tree tree_3 = {1, 2, 3, 4, 5, 6, 7};
 
-    yLab::RB_Tree tree_4 = {1, 2, 3, 4, 5, 6};
+    yLab::ARB_Tree tree_4 = {1, 2, 3, 4, 5, 6};
 
     EXPECT_EQ (tree_1, tree_1);
     EXPECT_EQ (tree_1, tree_4);
@@ -24,11 +24,11 @@ TEST (Comparison, Equality)
 
 TEST (Comaprison, Ordering)
 {
-    yLab::RB_Tree tree_1 = {1, 2, 3, 4, 5};
-    yLab::RB_Tree tree_2 = {1, 2, 3, 4, 5, 6};
-    yLab::RB_Tree tree_3 = {1, 2, 3, 4};
-    yLab::RB_Tree tree_4 = {1, 2, 3, 4, 6};
-    yLab::RB_Tree tree_5 = {1, 2, 3, 4, -1};
+    yLab::ARB_Tree tree_1 = {1, 2, 3, 4, 5};
+    yLab::ARB_Tree tree_2 = {1, 2, 3, 4, 5, 6};
+    yLab::ARB_Tree tree_3 = {1, 2, 3, 4};
+    yLab::ARB_Tree tree_4 = {1, 2, 3, 4, 6};
+    yLab::ARB_Tree tree_5 = {1, 2, 3, 4, -1};
 
     EXPECT_LT (tree_1, tree_2);
     EXPECT_GE (tree_2, tree_1);

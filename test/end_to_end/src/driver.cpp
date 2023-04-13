@@ -8,7 +8,7 @@
 
 int main ()
 {
-    yLab::RB_Tree<int> tree;
+    yLab::ARB_Tree<int> tree;
 
     std::ofstream file{"driver.info"};
     auto start = std::chrono::high_resolution_clock::now();

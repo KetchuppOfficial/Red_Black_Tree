@@ -5,7 +5,7 @@
 
 TEST (Constructors, Default_Constructor)
 {
-    const yLab::RB_Tree<int> tree;
+    const yLab::ARB_Tree<int> tree;
     EXPECT_EQ (tree.size(), 0);
     EXPECT_TRUE (tree.empty());
     EXPECT_EQ (tree.begin(), tree.end());
@@ -15,7 +15,7 @@ TEST (Constructors, Default_Constructor)
 
 TEST (Constructors, Copy_Constructor)
 {
-    yLab::RB_Tree<int> tree {1, 2, 3, 4, 5};
+    yLab::ARB_Tree<int> tree {1, 2, 3, 4, 5};
 
     auto tree_2 {tree};
     EXPECT_EQ (tree, tree_2);
@@ -23,7 +23,7 @@ TEST (Constructors, Copy_Constructor)
 
 TEST (Constructors, Move_Constructor)
 {
-    yLab::RB_Tree tree = {3, 2, 1, 4, 5};
+    yLab::ARB_Tree tree = {3, 2, 1, 4, 5};
     std::vector vec = {1, 2, 3, 4, 5};
 
     auto tree_2 = std::move (tree);
