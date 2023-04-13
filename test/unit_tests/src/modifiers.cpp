@@ -3,7 +3,7 @@
 #include <vector>
 #include <set>
 
-#include "rb_tree.hpp"
+#include "arb_tree.hpp"
 
 TEST (Modifiers, Clear)
 {

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <iterator>
 
-#include "rb_tree.hpp"
+#include "arb_tree.hpp"
 
 TEST (Lookup, Find)
 {

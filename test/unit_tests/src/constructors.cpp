@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <algorithm>
 
-#include "rb_tree.hpp"
+#include "arb_tree.hpp"
 
 TEST (Constructors, Default_Constructor)
 {

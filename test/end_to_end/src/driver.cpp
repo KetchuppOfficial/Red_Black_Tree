@@ -3,7 +3,7 @@
 #include <fstream>
 #include <chrono>
 
-#include "rb_tree.hpp"
+#include "arb_tree.hpp"
 #include "common.hpp"
 
 int main ()

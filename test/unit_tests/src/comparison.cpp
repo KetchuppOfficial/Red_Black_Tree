@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "rb_tree.hpp"
+#include "arb_tree.hpp"
 
 TEST (Comparison, Equality)
 {
