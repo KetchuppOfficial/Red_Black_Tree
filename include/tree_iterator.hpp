@@ -8,8 +8,7 @@
 namespace yLab
 {
 
-template <typename Key_T, typename Node_T>
-requires Binary_Tree_Node<Node_T>
+template <typename Key_T, typename Node_T, typename End_Node_T>
 class tree_iterator final
 {
 public:
@@ -23,20 +22,21 @@ public:
 private:
 
     using const_node_ptr = const Node_T *;
-    
-    const_node_ptr node_;
+    using const_end_node_ptr = const End_Node_T *;
+
+    const_end_node_ptr node_;
 
 public:
 
     tree_iterator () = default;
-    explicit tree_iterator (const_node_ptr node) noexcept : node_{node} {}
+    explicit tree_iterator (const_end_node_ptr node) noexcept : node_{node} {}
 
-    reference operator* () const { return node_->key(); }
-    pointer operator-> () const { return &node_->key(); }
+    reference operator* () const { return static_cast<const_node_ptr>(node_)->key(); }
+    pointer operator-> () const { return &static_cast<const_node_ptr>(node_)->key(); }
 
     tree_iterator &operator++ () noexcept
     {
-        node_ = detail::successor (node_);
+        node_ = detail::successor (static_cast<const_node_ptr>(node_));
         return *this;
     }
     

@@ -1,4 +1,7 @@
 #include <gtest/gtest.h>
+#include <numeric>
+#include <vector>
+#include <set>
 
 #include "rb_tree.hpp"
 
@@ -69,16 +72,30 @@ TEST (Modifiers, Erase_By_Iterator)
 
 TEST (Modifiers, Erase_By_Key)
 {
-    yLab::RB_Tree tree = {1, 5, -20, 256, 11, 42, 89, 0};
-    std::set<int> model{tree.begin(), tree.end()};
+    std::vector<int> vec(1000);
+    std::iota (vec.begin(), vec.end(), 1);
 
-    auto is_erased = tree.erase (11);
-    EXPECT_EQ (is_erased, 1);
+    for (auto key = 1; key != vec.size() + 1; ++key)
+    {
+        yLab::RB_Tree<int> tree{vec.begin(), vec.end()};
+        std::set<int> model{vec.begin(), vec.end()};
 
-    model.erase (11);
-    EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin()));
-    EXPECT_TRUE (std::equal (model.begin(), model.end(), tree.begin()));
+        auto is_erased = tree.erase (key);
+        EXPECT_EQ (is_erased, 1);
 
-    is_erased = tree.erase (-1);
-    EXPECT_EQ (is_erased, 0);
+        model.erase (key);
+        EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin()));
+        EXPECT_TRUE (std::equal (model.begin(), model.end(), tree.begin()));
+
+        is_erased = tree.erase (-key);
+        EXPECT_EQ (is_erased, 0);
+        EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin()));
+        EXPECT_TRUE (std::equal (model.begin(), model.end(), tree.begin()));
+    }
+
+    yLab::RB_Tree tree = {1};
+    yLab::RB_Tree<int> empty_tree;
+
+    tree.erase (1);
+    EXPECT_EQ (tree, empty_tree);
 }

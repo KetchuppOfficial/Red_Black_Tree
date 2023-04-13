@@ -8,26 +8,6 @@
 namespace yLab
 {
 
-template<typename T>
-concept Binary_Tree_Node_Base = 
-requires (T node)
-{
-    node.left_;   requires std::same_as<std::remove_const_t<decltype(node.left_)>,
-                                        std::remove_const_t<T>*>;
-    node.right_;  requires std::same_as<std::remove_const_t<decltype(node.right_)>,
-                                        std::remove_const_t<T>*>;
-    node.parent_; requires std::same_as<std::remove_const_t<decltype(node.parent_)>,
-                                        std::remove_const_t<T>*>;
-};
-
-template<typename T>
-concept Binary_Tree_Node = Binary_Tree_Node_Base<T> &&
-requires { typename T::key_type; } &&
-requires (T node)
-{
-    { node.key() } -> std::same_as<const typename T::key_type &>;
-};
-
 // Node representing the result of end()
 template<typename Node_T>
 class End_Node
@@ -67,6 +47,7 @@ class ARB_Node : public End_Node<ARB_Node<Key_T>>
 {
     using node_ptr = ARB_Node *;
     using base_ = End_Node<ARB_Node>;
+    using end_node_ptr = base_ *;
 
 public:
 
@@ -81,7 +62,7 @@ public:
     using size_type = std::size_t;
 
     node_ptr right_ = nullptr;
-    node_ptr parent_ = nullptr;
+    end_node_ptr parent_ = nullptr;
 
     color_type color_;
 
@@ -117,13 +98,14 @@ public:
     }
 
     const key_type &key () const { return key_; }
+
+    node_ptr parent_unsafe () const { return static_cast<node_ptr>(parent_); }
 };
 
 namespace detail
 {
 
 template<typename Node_T>
-requires Binary_Tree_Node_Base<Node_T>
 bool is_left_child (const Node_T *node) noexcept
 {
     assert (node && node->parent_);
@@ -132,7 +114,6 @@ bool is_left_child (const Node_T *node) noexcept
 }
 
 template<typename Node_T>
-requires Binary_Tree_Node_Base<Node_T>
 const Node_T *minimum (const Node_T *node) noexcept
 {
     assert (node);
@@ -144,14 +125,12 @@ const Node_T *minimum (const Node_T *node) noexcept
 }
 
 template<typename Node_T>
-requires Binary_Tree_Node_Base<Node_T>
 Node_T *minimum (Node_T *node) noexcept
 {
     return const_cast<Node_T *>(minimum (static_cast<const Node_T *>(node)));
 }
 
 template<typename Node_T>
-requires Binary_Tree_Node_Base<Node_T>
 const Node_T *maximum (const Node_T *node) noexcept
 {
     assert (node);
@@ -163,15 +142,13 @@ const Node_T *maximum (const Node_T *node) noexcept
 }
 
 template<typename Node_T>
-requires Binary_Tree_Node_Base<Node_T>
 Node_T *maximum (Node_T *node) noexcept
 {
     return const_cast<Node_T *>(maximum (static_cast<const Node_T *>(node)));
 }
 
 template<typename Node_T>
-requires Binary_Tree_Node_Base<Node_T>
-const Node_T *successor (const Node_T *node) noexcept
+const End_Node<Node_T> *successor (const Node_T *node) noexcept
 {
     assert (node);
     
@@ -179,42 +156,39 @@ const Node_T *successor (const Node_T *node) noexcept
         return minimum (node->right_);
 
     while (!is_left_child (node))
-        node = node->parent_;
-
+        node = node->parent_unsafe();
+    
     return node->parent_;
 }
 
 template<typename Node_T>
-requires Binary_Tree_Node_Base<Node_T>
-Node_T *successor (Node_T *node) noexcept
+End_Node<Node_T> *successor (Node_T *node) noexcept
 {
-    return const_cast<Node_T *>(successor (static_cast<const Node_T *>(node)));
+    return const_cast<End_Node<Node_T> *>(successor (static_cast<const Node_T *>(node)));
 }
 
 template<typename Node_T>
-requires Binary_Tree_Node<Node_T>
-const Node_T *predecessor (const Node_T *node) noexcept
+const Node_T *predecessor (const End_Node<Node_T> *node) noexcept
 {
     assert (node);
     
     if (node->left_)
         return maximum (node->left_);
 
-    while (is_left_child (node))
-        node = node->parent_;
+    auto node_ = static_cast<const Node_T *>(node);
+    while (is_left_child (node_))
+        node_ = node_->parent_unsafe();
 
-    return node->parent_;
+    return node_->parent_unsafe();
 }
 
 template<typename Node_T>
-requires Binary_Tree_Node_Base<Node_T>
-Node_T *predecessor (Node_T *node) noexcept
+Node_T *predecessor (End_Node<Node_T> *node) noexcept
 {
-    return const_cast<Node_T *>(predecessor (static_cast<const Node_T *>(node)));
+    return const_cast<Node_T *>(predecessor (static_cast<const End_Node<Node_T> *>(node)));
 }
 
 template<typename Node_T>
-requires Binary_Tree_Node_Base<Node_T>
 void left_rotate (Node_T *x) noexcept
 {
     assert (x && x->right_);
@@ -226,12 +200,11 @@ void left_rotate (Node_T *x) noexcept
     if (yl)
         yl->parent_ = x;
 
-    auto xp = x->parent_;
-    y->parent_ = xp;
+    y->parent_ = x->parent_;
     if (is_left_child (x))
-        xp->left_ = y;
+        x->parent_->left_ = y;
     else
-        xp->right_ = y;
+        x->parent_unsafe()->right_ = y;
 
     y->left_ = x;
     x->parent_ = y;
@@ -258,7 +231,6 @@ void left_rotate_plus (ARB_Node<Key_T> *x) noexcept
 }
 
 template <typename Node_T>
-requires Binary_Tree_Node_Base<Node_T>
 void right_rotate (Node_T *x) noexcept
 {
     assert (x && x->left_);
@@ -270,12 +242,11 @@ void right_rotate (Node_T *x) noexcept
     if (yr)
         yr->parent_ = x;
 
-    auto xp = x->parent_;
-    y->parent_ = xp;
+    y->parent_ = x->parent_;
     if (is_left_child (x))
-        xp->left_ = y;
+        x->parent_->left_ = y;
     else
-        xp->right_ = y;
+        x->parent_unsafe()->right_ = y;
 
     y->right_ = x;
     x->parent_ = y;
@@ -340,35 +311,64 @@ ARB_Node<Key_T> *kth_smallest (ARB_Node<Key_T> *root,
     return const_cast<node_ptr>(kth_smallest (static_cast<const_node_ptr>(root), k));
 }
 
-template<typename Key_T>
-auto n_less_than (const ARB_Node<Key_T> *root, const ARB_Node<Key_T> *node) noexcept ->
-typename ARB_Node<Key_T>::size_type
+template<typename Node_T>
+auto n_less_than (const End_Node<Node_T> *root, const End_Node<Node_T> *node) noexcept ->
+typename End_Node<Node_T>::size_type
 {
-    using size_type = typename ARB_Node<Key_T>::size_type;
+    using size_type = typename End_Node<Node_T>::size_type;
     
     auto left = node->left_;
     auto rank = left ? left->subtree_size_ : size_type{0};
 
     while (node != root)
     {
-        auto np = node->parent_;
+        auto node_ = static_cast<const Node_T *>(node);
+        auto np = node_->parent_;
 
-        if (node == np->right_)
+        if (!is_left_child (node_))
             rank += (np->left_) ? np->left_->subtree_size_ + 1 : 1;
 
-        node = node->parent_;
+        node = node_->parent_;
     }
 
     return rank;
 }
 
-template<typename Key_T>
-auto n_less_than (ARB_Node<Key_T> *root, ARB_Node<Key_T> *node) noexcept ->
-typename ARB_Node<Key_T>::size_type
+template<typename Node_T>
+auto n_less_than (End_Node<Node_T> *root, End_Node<Node_T> *node) noexcept ->
+typename End_Node<Node_T>::size_type
 {
-    using const_node_ptr = const ARB_Node<Key_T> *;
+    using const_node_ptr = const End_Node<Node_T> *;
 
     return n_less_than (static_cast<const_node_ptr>(root), static_cast<const_node_ptr>(node));
+}
+
+template<typename Node_T>
+std::size_t red_black_verifier (const Node_T *root) noexcept
+{
+    using color_type = typename Node_T::color_type;
+    
+    if (root == nullptr)
+        return 1;
+
+    if ((root->left_ && root->left_->parent_ != root) &&
+        (root->right_ && root->right_->parent_ != root))
+        return 0;
+
+    if (root->color_ == color_type::red)
+    {
+        if ((root->left_  && root->left_->color_  == color_type::red) ||
+            (root->right_ && root->right_->color_ == color_type::red))
+            return 0;
+    }
+
+    auto left_black_height = red_black_verifier (root->left_);
+    if (left_black_height == 0)
+        return 0;
+    if (left_black_height != red_black_verifier (root->right_))
+        return 0;
+
+    return left_black_height + (root->color_ == color_type::black) ? 1 : 0;
 }
 
 } // namespace detail

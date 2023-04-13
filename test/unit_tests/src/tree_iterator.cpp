@@ -1,10 +1,13 @@
 #include <gtest/gtest.h>
-#include <rb_tree.hpp>
 #include <utility>
+
+#include "rb_tree.hpp"
 
 TEST (Iterators, Check_Iterator_Concept)
 {
-    static_assert (std::bidirectional_iterator<yLab::tree_iterator<int, yLab::ARB_Node<int>>>);
+    using node_type = yLab::ARB_Node<int>;
+    using end_node_type = yLab::End_Node<node_type>;
+    static_assert (std::bidirectional_iterator<yLab::tree_iterator<int, node_type, end_node_type>>);
 }
 
 TEST (Iterators, Preincrement)

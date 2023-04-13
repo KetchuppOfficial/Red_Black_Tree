@@ -2,11 +2,6 @@
 
 #include <nodes.hpp>
 
-TEST (Nodes, Requirements)
-{
-    static_assert (yLab::Binary_Tree_Node<yLab::ARB_Node<int>>);
-}
-
 TEST (Nodes, Is_Left_Child)
 {
     using node_type = typename yLab::ARB_Node<int>;
@@ -27,7 +22,7 @@ TEST (Nodes, Is_Left_Child)
     // Also works for end_node
     yLab::End_Node<node_type> end_node;
     end_node.left_ = &left;
-    left.parent_ = static_cast<node_type *>(&end_node);
+    left.parent_ = &end_node;
 
     EXPECT_TRUE (yLab::detail::is_left_child (&left));
 }
@@ -46,7 +41,7 @@ TEST (Nodes, Basic_Queries)
 
     yLab::End_Node<node_type> end_node;
     node_type top{4, color_type::black};
-    auto end_node_ptr = static_cast<node_type *>(&end_node);
+    auto end_node_ptr = &end_node;
 
     end_node.left_ = &top;
     top.parent_ = end_node_ptr;
@@ -105,7 +100,6 @@ TEST (Nodes, Basic_Queries)
 
     EXPECT_EQ (yLab::detail::successor (&l_node), &lr_node);
     EXPECT_EQ (yLab::detail::predecessor (&l_node), &ll_node);
-
 
     EXPECT_EQ (yLab::detail::successor (&ll_node), &l_node);
     // predecessor for node with smallest key is undefined

@@ -13,12 +13,14 @@ namespace detail
 {
 
 template<typename Node_T>
-requires Binary_Tree_Node<Node_T>
-void graphic_dump (std::ostream &os, const Node_T *begin, const Node_T *end)
+void graphic_dump (std::ostream &os, const Node_T *begin, const End_Node<Node_T> *end)
 {
+    using node_ptr = const Node_T *;
+    using end_node_ptr = const End_Node<Node_T> *;
+    
     assert (begin && end);
     
-    auto node_dump = [&os](const Node_T *node)
+    auto node_dump = [&os](node_ptr node)
     {
         using color_type = typename Node_T::color_type;
         
@@ -38,7 +40,7 @@ void graphic_dump (std::ostream &os, const Node_T *begin, const Node_T *end)
                << " [style = filled, fillcolor = black, fontcolor = white, label = \"nil\"];\n";
     };
 
-    auto arrow_dump = [&os](const Node_T *node)
+    auto arrow_dump = [&os](node_ptr node)
     {
         os << "    node_" << node << " -> ";
         if (node->left_)
@@ -67,12 +69,12 @@ void graphic_dump (std::ostream &os, const Node_T *begin, const Node_T *end)
        << " [style = filled, fillcolor = yellow, label = \"end node| "
        << "size: " << end->subtree_size_ << "\"];\n";
 
-    for (auto node_ptr = begin; node_ptr != end; node_ptr = successor (node_ptr))
-        node_dump (node_ptr);
+    for (end_node_ptr node = begin; node != end; node = successor (static_cast<node_ptr>(node)))
+        node_dump (static_cast<node_ptr>(node));
 
     os << std::endl;
-    for (auto node_ptr = begin; node_ptr != end; node_ptr = successor (node_ptr))
-        arrow_dump (node_ptr);
+    for (end_node_ptr node = begin; node != end; node = successor (static_cast<node_ptr>(node)))
+        arrow_dump (static_cast<node_ptr>(node));
 
     os << "    node_" << end << " -> node_" << end->left_ << " [color = \"blue\"];\n}\n";
 }

@@ -28,12 +28,11 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
 
     auto fixup_subroutine_1 = [](Node_T *new_node, Node_T *uncle, const Node_T *root)
     {
-        new_node = new_node->parent_;
+        new_node = new_node->parent_unsafe();
         new_node->color_ = color_type::black;
 
-        new_node = new_node->parent_;
-        if (new_node != root)
-            new_node->color_ = color_type::red;
+        new_node = new_node->parent_unsafe();
+        new_node->color_ = (new_node == root) ? color_type::black : color_type::red;
 
         uncle->color_ = color_type::black;
 
@@ -42,10 +41,10 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
 
     auto fixup_subroutine_2 = [](Node_T *new_node)
     {        
-        new_node = new_node->parent_;
+        new_node = new_node->parent_unsafe();
         new_node->color_ = color_type::black;
 
-        new_node = new_node->parent_;
+        new_node = new_node->parent_unsafe();
         new_node->color_ = color_type::red;
 
         return new_node;
@@ -63,23 +62,24 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
     // Further: (new_node != root_) ==> (root_->color_ == color_type::black)
 
     // Checks if "If a node is red, then both its children are black" property violated
-    while (new_node != root && new_node->parent_->color_ == color_type::red)
+    while (new_node != root && new_node->parent_unsafe()->color_ == color_type::red)
     {
         // First condition is important only for iterations 2, 3, ... but not for 1
+        // (new_node != root) ==> exists (new_node->parent_)
         // (new_node->parent_->color_ == color_type::red) ==> (new_node->parent_ != root_)
         
-        if (is_left_child (new_node->parent_))
+        if (is_left_child (new_node->parent_unsafe()))
         {
-            // (new_node->parent_ != root_) ==> exists (new_node->parent_->parent_)
-            auto uncle = new_node->parent_->parent_->right_;
+            // (new_node->parent_ != root_) ==> exists (new_node->parent_->parent_) != end_node
+            auto uncle = new_node->parent_unsafe()->parent_unsafe()->right_;
 
             if (uncle && uncle->color_ == color_type::red)
                 new_node = fixup_subroutine_1 (new_node, uncle, root);
             else
             {
-                if (!is_left_child (new_node->parent_))
+                if (!is_left_child (new_node))
                 {
-                    new_node = new_node->parent_;
+                    new_node = new_node->parent_unsafe();
                     left_rotate_plus (new_node);
                 }
 
@@ -90,15 +90,15 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
         else
         {
             // (new_node->parent_ != root_) ==> exitsts (new_node->parent_->parent_)
-            auto uncle = new_node->parent_->parent_->left_;
+            auto uncle = new_node->parent_unsafe()->parent_->left_;
 
             if (uncle && uncle->color_ == color_type::red)
                 new_node = fixup_subroutine_1 (new_node, uncle, root);
             else
             {
-                if (is_left_child (new_node->parent_))
+                if (is_left_child (new_node))
                 {
-                    new_node = new_node->parent_;
+                    new_node = new_node->parent_unsafe();
                     right_rotate_plus (new_node);
                 }
 
@@ -109,15 +109,14 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
     }
 }
 
-// Doesn't affect tree structure; nodes are only recollored
-template<typename Node_T, typename Color_T>
-Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
+template<typename Node_T>
+void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 {
-    using color_type = Color_T;
+    using color_type = typename Node_T::color_type;
     
     if (x)
         x->color_ = color_type::black;
-    else    
+    else
     {
         while (true)
         {
@@ -125,9 +124,11 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
             {
                 if (w->color_ == color_type::red)
                 {
+                    auto wp = w->parent_unsafe();
+
                     w->color_ = color_type::black;
-                    w->parent_->color_ = color_type::red;
-                    left_rotate_plus (w->parent_);
+                    wp->color_ = color_type::red;
+                    left_rotate_plus (wp);
 
                     if (root == w->left_)
                         root = w;
@@ -139,7 +140,7 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                     (w->right_ == nullptr || w->right_->color_ == color_type::black))
                 {
                     w->color_ = color_type::red;
-                    x = w->parent_;
+                    x = w->parent_unsafe();
 
                     if (x == root || x->color_ == color_type::red)
                     {
@@ -147,7 +148,7 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                         break;
                     }
 
-                    w = is_left_child (x) ? x->parent_->right_ : x->parent_->left_;
+                    w = is_left_child (x) ? x->parent_unsafe()->right_ : x->parent_->left_;
                 }
                 else
                 {
@@ -156,13 +157,14 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                         w->left_->color_ = color_type::black;
                         w->color_ = color_type::red;
                         right_rotate_plus (w);
-                        w = w->parent_;
+                        w = w->parent_unsafe();
                     }
 
-                    w->color_ = w->parent_->color_;
-                    w->parent_->color_ = color_type::black;
+                    auto wp = w->parent_unsafe();
+                    w->color_ = wp->color_;
+                    wp->color_ = color_type::black;
                     w->right_->color_ = color_type::black;
-                    left_rotate_plus (w->parent_);
+                    left_rotate_plus (wp);
                     break;
                 }
             }
@@ -170,9 +172,11 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
             {
                 if (w->color_ == color_type::red)
                 {
+                    auto wp = w->parent_unsafe();
+
                     w->color_ = color_type::black;
-                    w->parent_->color_ = color_type::red;
-                    right_rotate_plus (w->parent_);
+                    wp->color_ = color_type::red;
+                    right_rotate_plus (wp);
 
                     if (root == w->right_)
                         root = w;
@@ -184,7 +188,7 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                     (w->right_ == nullptr || w->right_->color_ == color_type::black))
                 {
                     w->color_ = color_type::red;
-                    x = w->parent_;
+                    x = w->parent_unsafe();
 
                     if (x == root || x->color_ == color_type::red)
                     {
@@ -192,7 +196,7 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                         break;
                     }
 
-                    w = is_left_child (x) ? x->parent_->left_ : x->parent_->right_;
+                    w = is_left_child (x) ? x->parent_unsafe()->right_ : x->parent_->left_;
                 }
                 else
                 {
@@ -201,52 +205,73 @@ Node_T *rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                         w->right_->color_ = color_type::black;
                         w->color_ = color_type::red;
                         left_rotate_plus (w);
-                        w = w->parent_;
+                        w = w->parent_unsafe();
                     }
 
-                    w->color_ = w->parent_->color_;
-                    w->parent_->color_ = color_type::black;
+                    auto wp = w->parent_unsafe();
+
+                    w->color_ = wp->color_;
+                    wp->color_ = color_type::black;
                     w->left_->color_ = color_type::black;
-                    right_rotate_plus (w->parent_);
+                    right_rotate_plus (wp);
                     break;
                 }
             }
         }
     }
-
-    return root;
 }
 
-template<typename Node_T, typename Color_T>
-Node_T *erase (Node_T *root, Node_T *z) noexcept
+template<typename Node_T>
+void erase (Node_T *root, Node_T *z) noexcept
 {    
+    using color_type = typename Node_T::color_type;
+    
     assert (root && z);
     
-    auto y = (z->left_ == nullptr || z->right_ == nullptr) ? z : successor (z);
-    auto x = (y->left_ == nullptr) ? y->right_ : y->left_;
-    auto w = static_cast<Node_T *>(nullptr);
+    // if (z == maximum (root)) then z->right_ == nullptr ==> y = z
+    // else exists successor (z) != end_node
+    auto y = (z->left_ == nullptr || z->right_ == nullptr) ? z : static_cast<Node_T *>(successor (z));
 
-    auto yp = y->parent_;
-    
+    // (x == nullptr) <==> (y->left_ == nullptr) && (y->right_ == nullptr)
+    auto x = (y->left_ == nullptr) ? y->right_ : y->left_;
+    Node_T *w = nullptr;
+
+    // root may change its value further, so we save it
+    auto end_node = root->parent_;
+
     if (is_left_child (y))
     {
-        yp->left_ = x;
+        // STATEMENT (*)
+        // Let y == successor (z), then:
+        // is_left_child (y) ==> (y != z->right_) ==> (y->parent_ != z)
+        // Even if (x == nullptr), then (z->left_ != nullptr)
+        y->parent_->left_ = x;
         
         if (y != root)
-            w = yp->right_;
+        {
+            // y != root ==> exists y->parent_ != end_node
+            w = y->parent_unsafe()->right_;
+        }   
         else
             root = x;
     }
     else
     {
+        // y is its parent's right child ==> exists y->parent != end_node
+        auto yp = y->parent_unsafe();
+
+        // if (yp == z) then following line may set z->right_ to nullptr
         yp->right_ = x;
         w = yp->left_;
     }
 
-    if (x)
+    // Next if-statement may change z->subtree_size_, so we save it
+    auto z_size = z->subtree_size_;
+
+    if (auto yp = y->parent_; x != nullptr)
     {
         x->parent_ = yp;
-        yp->subtree_size_ += (x->subtree_size_ - y->subtree_size_);
+        yp->subtree_size_ -= (y->subtree_size_ - x->subtree_size_);
     }
     else
         yp->subtree_size_ -= y->subtree_size_;
@@ -255,51 +280,58 @@ Node_T *erase (Node_T *root, Node_T *z) noexcept
 
     if (y != z)
     {
+        if (auto yp = y->parent_unsafe(); yp != z)
+        {
+            auto dec = (x) ? y->subtree_size_ - x->subtree_size_ : y->subtree_size_;
+            for (auto ypp = yp->parent_unsafe(); ypp != z; ypp = ypp->parent_unsafe())
+                ypp->subtree_size_ -= dec;
+        }
+        
         auto zl = z->left_;
         auto zr = z->right_;
+
+        // We are sure that zl != nullptr because of (*)
+        zl->parent_ = y;
+        if (zr)
+            zr->parent_ = y;
 
         y->left_ = zl;
         y->right_ = zr;
 
-        y->left_->parent_ = y;
-        if (y->right_)
-            y->right_->parent_ = y;
+        y->subtree_size_ = (zl ? zl->subtree_size_ : 0) +
+                           (zr ? zr->subtree_size_ : 0) + 1;
 
         y->color_ = z->color_;
 
-        y->subtree_size_ = (zl ? z->left_->subtree_size_ : 0) +
-                           (zr ? z->right_->subtree_size_ : 0) + 1;
-
-        auto zp = z->parent_;
         if (is_left_child (z))
         {
+            auto zp = z->parent_;
             zp->left_ = y;
-            zp->subtree_size_ = 1 + y->subtree_size_ +
-                                ((zp->right_) ? zp->right_->subtree_size_ : 0);
+            zp->subtree_size_ += (y->subtree_size_ - z_size);
         }
         else
         {
+            auto zp = z->parent_unsafe();
             zp->right_ = y;
-            zp->subtree_size_ = 1 + y->subtree_size_ +
-                                ((zp->left_) ? zp->left_->subtree_size_ : 0);
+            zp->subtree_size_ += (y->subtree_size_ - z_size);
         }
 
-        y->parent_ = zp;
+        y->parent_ = z->parent_;
 
         if (z == root)
             root = y;
     }
-    else
+
+    if (z->parent_ != end_node)
     {
-        auto end_node = root->parent_;
-        for (auto node = yp->parent_; node != end_node; node = node->parent_)
+        auto zp = z->parent_unsafe();
+        for (auto node = zp->parent_; node != end_node; node = static_cast<Node_T *>(node)->parent_)
             node->subtree_size_--;
+        end_node->subtree_size_--;
     }
 
-    if (y_orig_color == Color_T::black && root)
-        root = rb_erase_fixup<Node_T, Color_T> (root, x, w);
-
-    return root;
+    if (y_orig_color == color_type::black && root)
+        rb_erase_fixup (root, x, w);
 }
 
 } // namespace detail
@@ -325,10 +357,6 @@ public:
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
     using node_type = ARB_Node<key_type>;
-    using const_iterator = tree_iterator<key_type, node_type>;
-    using iterator = const_iterator;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 private:
 
@@ -336,9 +364,20 @@ private:
     using node_ptr = node_type *;
     using const_node_ptr = const node_type *;
     using end_node_type = End_Node<node_type>;
+    using end_node_ptr = end_node_type *;
+    using const_end_node_ptr = const end_node_type *;
+
+public:
+
+    using const_iterator = tree_iterator<key_type, node_type, end_node_type>;
+    using iterator = const_iterator;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+private:
 
     end_node_type end_node_{};
-    const_node_ptr leftmost_  = end_node();
+    const_end_node_ptr leftmost_  = &end_node_;
     key_compare comp_;
 
 public:
@@ -347,7 +386,7 @@ public:
 
     explicit RB_Tree (const key_compare &comp) : comp_{comp} {}
 
-    template <std::input_iterator it>
+    template<std::input_iterator it>
     RB_Tree (it first, it last, const key_compare &comp = key_compare{}) : comp_{comp}
     {
         insert (first, last);
@@ -385,7 +424,7 @@ public:
 
     RB_Tree (RB_Tree &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_compare>)
             : end_node_{std::move (rhs.end_node_)},
-              leftmost_{std::exchange (rhs.leftmost_, rhs.end_node())},
+              leftmost_{std::exchange (rhs.leftmost_, &rhs.end_node_)},
               comp_{std::move (rhs.comp_)} {}
 
     RB_Tree &operator= (RB_Tree &&rhs) noexcept (std::is_nothrow_swappable_v<key_compare> &&
@@ -416,8 +455,8 @@ public:
 
     iterator begin () noexcept { return iterator{leftmost_}; }
     const_iterator begin () const noexcept { return const_iterator{leftmost_}; }
-    iterator end () { return iterator{end_node()}; }
-    const_iterator end () const { return const_iterator{end_node()}; }
+    iterator end () { return iterator{&end_node_}; }
+    const_iterator end () const { return const_iterator{&end_node_}; }
 
     reverse_iterator rbegin () noexcept { return reverse_iterator{end()}; }
     const_reverse_iterator rbegin () const noexcept { return const_reverse_iterator{end()}; }
@@ -443,7 +482,7 @@ public:
     {
         clean_up (root());
 
-        leftmost_ = end_node();
+        leftmost_ = &end_node_;
         root() = nullptr;
 
         end_node_.subtree_size_ = 1;
@@ -455,7 +494,7 @@ public:
     
         if (node == nullptr) // No node with such key in the tree
         {
-            auto new_node = insert_hint_unique (key, parent ? parent : end_node(), side);
+            auto new_node = insert_hint_unique (key, parent ? parent : &end_node_, side);
             return std::make_pair (iterator{new_node}, true);
         }
         else
@@ -471,22 +510,24 @@ public:
 
     void insert (std::initializer_list<value_type> ilist)
     {
-        for (auto it = ilist.begin(), end = ilist.end(); it != end; ++it)
-            insert_unique (*it);
+        for (auto &&key : ilist)
+            insert_unique (key);
     }
 
     iterator erase (iterator pos)
     {
-        auto node = const_cast<node_ptr>(pos.node_);
+        auto node = const_cast<end_node_ptr>(pos.node_);
         ++pos;
 
         if (node == leftmost_)
             leftmost_ = pos.node_;
 
-        root() = detail::erase<node_type, color_type> (root(), node);
+        detail::erase (root(), static_cast<node_ptr>(node));
         delete node;
 
-        end_node_.subtree_size_--;
+        assert (search_verifier());
+        assert (red_black_verifier());
+        assert (subtree_sizes_verifier());
 
         return pos;
     }
@@ -542,6 +583,8 @@ public:
 
     const_iterator kth_smallest (size_type k) const
     {
+        assert (subtree_sizes_verifier ());
+
         if (empty() || k == 0)
             return end();
         
@@ -556,6 +599,8 @@ public:
 
     size_type n_less_than (const key_type &key) const
     {
+        assert (subtree_sizes_verifier ());
+        
         if (empty())
             return 0;
 
@@ -563,47 +608,26 @@ public:
         if (it == end())
             return size();
         else
-            return detail::n_less_than (root(), it.node_); 
+            return detail::n_less_than (root(), it.node_);
     }
 
     #ifdef DEBUG
     
     // I see how this violates SRP but I don't know any better implementation
-    void graphic_dump (std::ostream &os) const { detail::graphic_dump (os, leftmost_, end_node()); }
-
-    bool search_verifier () const
+    void graphic_dump (std::ostream &os) const
     {
-        auto first = begin(), last = end();
-        
-        for (;;)
-        {
-            auto current = *first++;
-            if (first != end())
-            {
-                auto next = *first;
+        if (empty())
+            return;
 
-                if (!comp_(current, next))
-                    return false;
-            }
-            else
-                break;
-        }
-
-        return true;
+        detail::graphic_dump (os, static_cast<const_node_ptr>(leftmost_), &end_node_);
     }
 
     #endif // DEBUG
 
 private:
 
-    node_ptr end_node () noexcept { return static_cast<node_ptr>(std::addressof (end_node_)); }
-    const_node_ptr end_node () const noexcept
-    {
-        return static_cast<const_node_ptr>(std::addressof (end_node_));
-    }
-
-    node_ptr &root () noexcept { return end_node()->left_; }
-    const_node_ptr root () const noexcept { return end_node()->left_; }
+    node_ptr &root () noexcept { return end_node_.left_; }
+    const_node_ptr root () const noexcept { return end_node_.left_; }
 
     const_node_ptr find (const_node_ptr node, const key_type &key) const
     {
@@ -621,12 +645,12 @@ private:
     enum class Side { left, right };
 
     // No need for const overload as find_v2 is used only in insert
-    std::tuple<node_ptr, node_ptr, Side> find_v2 (node_ptr node, const key_type &key)
+    std::tuple<node_ptr, end_node_ptr, Side> find_v2 (node_ptr node, const key_type &key)
     {
         // (parent == nullptr) ==> (key == root().key())
         // (node != nullptr) ==> (parent != nullptr)
 
-        node_ptr parent = nullptr;
+        end_node_ptr parent = nullptr;
         Side side = Side::left; // root is a left child of end_node
 
         while (node)
@@ -697,40 +721,28 @@ private:
         return static_cast<const RB_Tree &>(*this).upper_bound (node, key);
     }
 
-    #if 0
-    node_ptr insert_root (const key_type &key)
-    {
-        auto new_node = new node_type{key, color_type::black};
-        end_node_.subtree_size_++;
-        
-        root() = new_node;
-        root()->parent_ = end_node();
-
-        leftmost_ = new_node;
-
-        return new_node;
-    }
-    #endif
-
-    node_ptr insert_hint_unique (const key_type &key, node_ptr parent, Side side)
+    node_ptr insert_hint_unique (const key_type &key, end_node_ptr parent, Side side)
     {
         auto new_node = new node_type{key, color_type::red};
-        end_node_.subtree_size_++;
-
         new_node->parent_ = parent;
 
         if (side == Side::left)
             parent->left_ = new_node;
         else
-            parent->right_ = new_node;
+            new_node->parent_unsafe()->right_ = new_node;
 
-        for (auto node = parent; node != end_node(); node = node->parent_)
+        for (auto node = parent; node != &end_node_; node = static_cast<node_ptr>(node)->parent_)
             node->subtree_size_++;
+        end_node_.subtree_size_++;
 
         detail::rb_insert_fixup (root(), new_node);
 
         if (new_node == leftmost_->left_)
             leftmost_ = new_node;
+
+        assert (search_verifier ());
+        assert (red_black_verifier());
+        assert (subtree_sizes_verifier ());
 
         return new_node;
     }
@@ -740,7 +752,7 @@ private:
         auto [node, parent, side] = find_v2 (root(), key);
     
         if (node == nullptr)
-            insert_hint_unique (key, parent ? parent : end_node(), side);
+            insert_hint_unique (key, parent ? parent : &end_node_, side);
     }
 
     void clean_up (node_ptr root)
@@ -759,6 +771,46 @@ private:
                 save->right_ = node;
             }
         }
+    }
+
+    bool search_verifier () const
+    {
+        return std::is_sorted (begin(), end(), comp_);
+    }
+
+    bool red_black_verifier () const
+    {
+        if (root() == nullptr)
+            return true; // empty tree
+        
+        if (root()->parent_ != &end_node_)
+            return false;
+        
+        if (!detail::is_left_child (root()))
+            return false;
+
+        if (root()->color_ != color_type::black)
+            return false;
+
+        return (detail::red_black_verifier (root()) != 0);
+    }
+
+    bool subtree_sizes_verifier () const noexcept
+    {
+        if (size() != std::distance (begin(), end()))
+            return false;
+        
+        for (auto it = begin(), ite = end(); it != ite; ++it)
+        {
+            auto node = static_cast<const_node_ptr>(it.node_);
+            auto expected_size = 1 + (node->left_ ? node->left_->subtree_size_ : size_type{0}) +
+                                 (node->right_ ? node->right_->subtree_size_ : size_type{0});
+            
+            if (expected_size != node->subtree_size_)
+                return false;
+        }
+
+        return true;
     }
 };
 
