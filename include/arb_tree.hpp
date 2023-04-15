@@ -376,8 +376,48 @@ public:
 
 private:
 
-    end_node_type end_node_{};
-    const_end_node_ptr leftmost_  = &end_node_;
+    struct Root_Wrapper
+    {
+        end_node_type end_node_{};
+
+        Root_Wrapper () = default;
+
+        Root_Wrapper (const Root_Wrapper &rhs) = delete;
+        Root_Wrapper &operator= (const Root_Wrapper &rhs) = delete;
+
+        Root_Wrapper (Root_Wrapper &&rhs) noexcept (std::is_nothrow_constructible_v<end_node_type>)
+                     : end_node_{std::move (rhs.end_node_)} {}
+
+        Root_Wrapper &operator= (Root_Wrapper &&rhs) noexcept (std::is_nothrow_swappable_v<end_node_type>)
+        {
+            std::swap (end_node_, rhs.end_node_);
+
+            return *this;
+        }
+
+        void clean_up ()
+        {
+            for (node_ptr node = end_node_.left_, save{}; node != nullptr; node = save)
+            {
+                if (node->left_ == nullptr)
+                {
+                    save = node->right_;
+                    delete node;
+                }
+                else
+                {
+                    save = node->left_;
+                    node->left_ = save->right_;
+                    save->right_ = node;
+                }
+            }
+        }
+
+        ~Root_Wrapper () { clean_up(); }
+    };
+
+    Root_Wrapper root_{};
+    const_end_node_ptr leftmost_  = std::addressof (end_node());
     key_compare comp_;
 
 public:
@@ -401,17 +441,7 @@ public:
     ARB_Tree (const ARB_Tree &rhs) : comp_{rhs.comp_}
     {
         for (auto &&key : rhs)
-        {
-            try
-            {
-                insert_unique (key);
-            }
-            catch (...)
-            {
-                clean_up (root());
-                throw;
-            }
-        }
+            insert_unique (key);
     }
 
     ARB_Tree &operator= (const ARB_Tree &rhs)
@@ -423,22 +453,19 @@ public:
     }
 
     ARB_Tree (ARB_Tree &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_compare>)
-             : end_node_{std::move (rhs.end_node_)},
-               leftmost_{std::exchange (rhs.leftmost_, &rhs.end_node_)},
+             : root_{std::move (rhs.root_)},
+               leftmost_{std::exchange (rhs.leftmost_, std::addressof (rhs.end_node()))},
                comp_{std::move (rhs.comp_)} {}
 
     ARB_Tree &operator= (ARB_Tree &&rhs) noexcept (std::is_nothrow_swappable_v<key_compare> &&
-                                                  std::is_nothrow_swappable_v<end_node_type>)
+                                                   std::is_nothrow_swappable_v<end_node_type>)
     {
         swap (rhs);
 
         return *this;
     }
 
-    ~ARB_Tree ()
-    {
-        clean_up (root());
-    }
+    ~ARB_Tree () = default;
 
     // Observers
 
@@ -448,15 +475,15 @@ public:
 
     // Capacity
 
-    size_type size () const noexcept { return end_node_.subtree_size_ - 1; }
+    size_type size () const noexcept { return end_node().subtree_size_ - 1; }
     bool empty () const noexcept { return size() == 0; }
 
     // Iterators
 
     iterator begin () noexcept { return iterator{leftmost_}; }
     const_iterator begin () const noexcept { return const_iterator{leftmost_}; }
-    iterator end () { return iterator{&end_node_}; }
-    const_iterator end () const { return const_iterator{&end_node_}; }
+    iterator end () { return iterator{std::addressof (end_node())}; }
+    const_iterator end () const { return const_iterator{std::addressof (end_node())}; }
 
     reverse_iterator rbegin () noexcept { return reverse_iterator{end()}; }
     const_reverse_iterator rbegin () const noexcept { return const_reverse_iterator{end()}; }
@@ -473,19 +500,19 @@ public:
     void swap (ARB_Tree &other) noexcept (std::is_nothrow_swappable_v<key_compare> &&
                                          std::is_nothrow_swappable_v<end_node_type>)
     {
-        std::swap (end_node_, other.end_node_);
+        std::swap (root_, other.root_);
         std::swap (leftmost_, other.leftmost_);
         std::swap (comp_, other.comp_);
     }
 
     void clear ()
     {
-        clean_up (root());
+        root_.clean_up ();
 
-        leftmost_ = &end_node_;
+        leftmost_ = std::addressof (end_node());
         root() = nullptr;
 
-        end_node_.subtree_size_ = 1;
+        end_node().subtree_size_ = 1;
     }
 
     std::pair<iterator, bool> insert (const key_type &key)
@@ -494,7 +521,7 @@ public:
     
         if (node == nullptr) // No node with such key in the tree
         {
-            auto new_node = insert_hint_unique (key, parent ? parent : &end_node_, side);
+            auto new_node = insert_hint_unique (key, parent ? parent : std::addressof (end_node()), side);
             return std::make_pair (iterator{new_node}, true);
         }
         else
@@ -619,15 +646,18 @@ public:
         if (empty())
             return;
 
-        detail::graphic_dump (os, static_cast<const_node_ptr>(leftmost_), &end_node_);
+        detail::graphic_dump (os, static_cast<const_node_ptr>(leftmost_), std::addressof (end_node()));
     }
 
     #endif // DEBUG
 
 private:
 
-    node_ptr &root () noexcept { return end_node_.left_; }
-    const_node_ptr root () const noexcept { return end_node_.left_; }
+    end_node_type &end_node () noexcept { return root_.end_node_; }
+    const end_node_type &end_node () const noexcept { return root_.end_node_; }
+
+    node_ptr &root () noexcept { return end_node().left_; }
+    const_node_ptr root () const noexcept { return end_node().left_; }
 
     const_node_ptr find (const_node_ptr node, const key_type &key) const
     {
@@ -731,9 +761,12 @@ private:
         else
             new_node->parent_unsafe()->right_ = new_node;
 
-        for (auto node = parent; node != &end_node_; node = static_cast<node_ptr>(node)->parent_)
+        for (auto node = parent; node != std::addressof (end_node());
+            node = static_cast<node_ptr>(node)->parent_)
+        {
             node->subtree_size_++;
-        end_node_.subtree_size_++;
+        }
+        end_node().subtree_size_++;
 
         detail::rb_insert_fixup (root(), new_node);
 
@@ -752,25 +785,7 @@ private:
         auto [node, parent, side] = find_v2 (root(), key);
     
         if (node == nullptr)
-            insert_hint_unique (key, parent ? parent : &end_node_, side);
-    }
-
-    void clean_up (node_ptr root)
-    {
-        for (node_ptr node = root, save{}; node != nullptr; node = save)
-        {
-            if (node->left_ == nullptr)
-            {
-                save = node->right_;
-                delete node;
-            }
-            else
-            {
-                save = node->left_;
-                node->left_ = save->right_;
-                save->right_ = node;
-            }
-        }
+            insert_hint_unique (key, parent ? parent : std::addressof (end_node()), side);
     }
 
     bool search_verifier () const
@@ -783,7 +798,7 @@ private:
         if (root() == nullptr)
             return true; // empty tree
         
-        if (root()->parent_ != &end_node_)
+        if (root()->parent_ != std::addressof (end_node()))
             return false;
         
         if (!detail::is_left_child (root()))
