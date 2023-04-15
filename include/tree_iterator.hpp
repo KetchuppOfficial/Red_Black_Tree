@@ -8,21 +8,22 @@
 namespace yLab
 {
 
-template <typename Key_T, typename Node_T, typename End_Node_T>
+template <typename Node_T>
 class tree_iterator final
 {
 public:
 
     using iterator_category = typename std::bidirectional_iterator_tag;
     using difference_type = ptrdiff_t;
-    using value_type = Key_T;
-    using reference = const Key_T &;
-    using pointer = const Key_T *;
+    using value_type = typename Node_T::key_type;
+    using reference = const value_type &;
+    using pointer = const value_type *;
 
 private:
 
-    using const_node_ptr = const Node_T *;
-    using const_end_node_ptr = const End_Node_T *;
+    using end_node_type = End_Node<Node_T>;
+    using const_node_ptr = const Node_T *; 
+    using const_end_node_ptr = const end_node_type *;
 
     const_end_node_ptr node_;
 

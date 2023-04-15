@@ -368,7 +368,7 @@ std::size_t red_black_verifier (const Node_T *root) noexcept
     if (left_black_height != red_black_verifier (root->right_))
         return 0;
 
-    return left_black_height + (root->color_ == color_type::black) ? 1 : 0;
+    return left_black_height + ((root->color_ == color_type::black) ? 1 : 0);
 }
 
 } // namespace detail

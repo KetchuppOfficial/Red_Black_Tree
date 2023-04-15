@@ -6,8 +6,7 @@
 TEST (Iterators, Check_Iterator_Concept)
 {
     using node_type = yLab::ARB_Node<int>;
-    using end_node_type = yLab::End_Node<node_type>;
-    static_assert (std::bidirectional_iterator<yLab::tree_iterator<int, node_type, end_node_type>>);
+    static_assert (std::bidirectional_iterator<yLab::tree_iterator<node_type>>);
 }
 
 TEST (Iterators, Preincrement)

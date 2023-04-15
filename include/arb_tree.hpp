@@ -369,7 +369,7 @@ private:
 
 public:
 
-    using const_iterator = tree_iterator<key_type, node_type, end_node_type>;
+    using const_iterator = tree_iterator<node_type>;
     using iterator = const_iterator;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
