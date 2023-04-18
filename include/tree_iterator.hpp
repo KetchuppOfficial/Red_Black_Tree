@@ -13,7 +13,7 @@ class tree_iterator final
 {
 public:
 
-    using iterator_category = typename std::bidirectional_iterator_tag;
+    using iterator_category = std::bidirectional_iterator_tag;
     using difference_type = ptrdiff_t;
     using value_type = typename Node_T::key_type;
     using reference = const value_type &;

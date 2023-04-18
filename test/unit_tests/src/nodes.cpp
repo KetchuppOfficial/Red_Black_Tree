@@ -4,7 +4,7 @@
 
 TEST (Nodes, Is_Left_Child)
 {
-    using node_type = typename yLab::ARB_Node<int>;
+    using node_type = yLab::ARB_Node<int>;
     using color_type = typename node_type::color_type;
     
     node_type parent{1, color_type::red};
@@ -36,7 +36,7 @@ TEST (Nodes, Is_Left_Child)
  */
 TEST (Nodes, Basic_Queries)
 {
-    using node_type = typename yLab::ARB_Node<int>;
+    using node_type = yLab::ARB_Node<int>;
     using color_type = node_type::color_type;
 
     yLab::End_Node<node_type> end_node;
@@ -127,7 +127,7 @@ TEST (Nodes, Basic_Queries)
  */
 TEST (Details, Left_Rotate_Plus)
 {
-    using node_type = typename yLab::ARB_Node<int>;
+    using node_type = yLab::ARB_Node<int>;
     using color_type = typename node_type::color_type;
 
     node_type root{1, color_type::red};
@@ -181,7 +181,7 @@ TEST (Details, Left_Rotate_Plus)
  */
 TEST (Details, Right_Rotate_Plus)
 {
-    using node_type = typename yLab::ARB_Node<int>;
+    using node_type = yLab::ARB_Node<int>;
     using color_type = typename node_type::color_type;
     
     node_type root{1, color_type::black};
