@@ -357,6 +357,10 @@ public:
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
     using node_type = ARB_Node<key_type>;
+    using const_iterator = tree_iterator<node_type>;
+    using iterator = const_iterator;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 private:
 
@@ -366,15 +370,6 @@ private:
     using end_node_type = End_Node<node_type>;
     using end_node_ptr = end_node_type *;
     using const_end_node_ptr = const end_node_type *;
-
-public:
-
-    using const_iterator = tree_iterator<node_type>;
-    using iterator = const_iterator;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
-private:
 
     struct Root_Wrapper
     {
