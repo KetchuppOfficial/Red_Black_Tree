@@ -630,7 +630,7 @@ public:
         if (it == end())
             return size();
         else
-            return detail::n_less_than (root(), it.node_);
+            return detail::n_less_than<const_end_node_ptr> (root(), it.node_);
     }
 
     #ifdef DEBUG
