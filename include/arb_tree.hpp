@@ -71,7 +71,7 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
         if (is_left_child (new_node->parent_unsafe()))
         {
             // (new_node->parent_ != root_) ==> exists (new_node->parent_->parent_) != end_node
-            auto uncle = new_node->parent_unsafe()->parent_unsafe()->right_;
+            auto uncle = new_node->parent_unsafe()->parent_unsafe()->get_right();
 
             if (uncle && uncle->color_ == color_type::red)
                 new_node = fixup_subroutine_1 (new_node, uncle, root);
@@ -90,7 +90,7 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
         else
         {
             // (new_node->parent_ != root_) ==> exitsts (new_node->parent_->parent_)
-            auto uncle = new_node->parent_unsafe()->parent_->left_;
+            auto uncle = new_node->parent_unsafe()->get_parent()->get_left();
 
             if (uncle && uncle->color_ == color_type::red)
                 new_node = fixup_subroutine_1 (new_node, uncle, root);
@@ -130,14 +130,17 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                     wp->color_ = color_type::red;
                     left_rotate_plus (wp);
 
-                    if (root == w->left_)
+                    auto wl = w->get_left();
+                    if (root == wl)
                         root = w;
 
-                    w = w->left_->right_;
+                    w = wl->get_right();
                 }
 
-                if ((w->left_  == nullptr || w->left_->color_  == color_type::black) &&
-                    (w->right_ == nullptr || w->right_->color_ == color_type::black))
+                auto wl = w->get_left();
+                auto wr = w->get_right();
+                if ((wl == nullptr || wl->color_ == color_type::black) &&
+                    (wr == nullptr || wr->color_ == color_type::black))
                 {
                     w->color_ = color_type::red;
                     x = w->parent_unsafe();
@@ -148,13 +151,14 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                         break;
                     }
 
-                    w = is_left_child (x) ? x->parent_unsafe()->right_ : x->parent_->left_;
+                    w = is_left_child (x) ? x->parent_unsafe()->get_right()
+                                          : x->get_parent()->get_left();
                 }
                 else
                 {
-                    if (w->right_ == nullptr || w->right_->color_ == color_type::black)
+                    if (wr == nullptr || wr->color_ == color_type::black)
                     {
-                        w->left_->color_ = color_type::black;
+                        wl->color_ = color_type::black;
                         w->color_ = color_type::red;
                         right_rotate_plus (w);
                         w = w->parent_unsafe();
@@ -163,7 +167,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                     auto wp = w->parent_unsafe();
                     w->color_ = wp->color_;
                     wp->color_ = color_type::black;
-                    w->right_->color_ = color_type::black;
+                    wr->color_ = color_type::black;
                     left_rotate_plus (wp);
                     break;
                 }
@@ -178,14 +182,17 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                     wp->color_ = color_type::red;
                     right_rotate_plus (wp);
 
-                    if (root == w->right_)
+                    auto wr = w->get_right();
+                    if (root == wr)
                         root = w;
 
-                    w = w->right_->left_;
+                    w = wr->get_left();
                 }
 
-                if ((w->left_  == nullptr || w->left_->color_  == color_type::black) &&
-                    (w->right_ == nullptr || w->right_->color_ == color_type::black))
+                auto wl = w->get_left();
+                auto wr = w->get_right();
+                if ((wl == nullptr || wl->color_ == color_type::black) &&
+                    (wr == nullptr || wr->color_ == color_type::black))
                 {
                     w->color_ = color_type::red;
                     x = w->parent_unsafe();
@@ -196,13 +203,14 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                         break;
                     }
 
-                    w = is_left_child (x) ? x->parent_unsafe()->right_ : x->parent_->left_;
+                    w = is_left_child (x) ? x->parent_unsafe()->get_right()
+                                          : x->parent_unsafe()->get_left();
                 }
                 else
                 {
-                    if (w->left_ == nullptr || w->left_->color_ == color_type::black)
+                    if (wl == nullptr || wl->color_ == color_type::black)
                     {
-                        w->right_->color_ = color_type::black;
+                        wr->color_ = color_type::black;
                         w->color_ = color_type::red;
                         left_rotate_plus (w);
                         w = w->parent_unsafe();
@@ -212,7 +220,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 
                     w->color_ = wp->color_;
                     wp->color_ = color_type::black;
-                    w->left_->color_ = color_type::black;
+                    wl->color_ = color_type::black;
                     right_rotate_plus (wp);
                     break;
                 }
@@ -228,29 +236,29 @@ void erase (Node_T *root, Node_T *z) noexcept
     
     assert (root && z);
     
-    // if (z == maximum (root)) then z->right_ == nullptr ==> y = z
+    // if (z == maximum (root)) then z->get_right() == nullptr ==> y = z
     // else exists successor (z) != end_node
-    auto y = (z->left_ == nullptr || z->right_ == nullptr) ? z : static_cast<Node_T *>(successor (z));
+    auto y = (z->get_left() && z->get_right()) ? static_cast<Node_T *>(successor (z)) : z;
 
-    // (x == nullptr) <==> (y->left_ == nullptr) && (y->right_ == nullptr)
-    auto x = (y->left_ == nullptr) ? y->right_ : y->left_;
+    // (x == nullptr) <==> (y->get_left() == nullptr) && (y->get_right() == nullptr)
+    auto x = y->get_left() ? y->get_left() : y->get_right();
     Node_T *w = nullptr;
 
     // root may change its value further, so we save it
-    auto end_node = root->parent_;
+    auto end_node = root->get_parent();
 
     if (is_left_child (y))
     {
         // STATEMENT (*)
         // Let y == successor (z), then:
-        // is_left_child (y) ==> (y != z->right_) ==> (y->parent_ != z)
-        // Even if (x == nullptr), then (z->left_ != nullptr)
-        y->parent_->left_ = x;
+        // is_left_child (y) ==> (y != z->get_right()) ==> (y->parent_ != z)
+        // Even if (x == nullptr), then (z->get_left() != nullptr)
+        y->get_parent()->set_left (x);
         
         if (y != root)
         {
             // y != root ==> exists y->parent_ != end_node
-            w = y->parent_unsafe()->right_;
+            w = y->parent_unsafe()->get_right();
         }   
         else
             root = x;
@@ -260,17 +268,17 @@ void erase (Node_T *root, Node_T *z) noexcept
         // y is its parent's right child ==> exists y->parent != end_node
         auto yp = y->parent_unsafe();
 
-        // if (yp == z) then following line may set z->right_ to nullptr
-        yp->right_ = x;
-        w = yp->left_;
+        // if (yp == z) then following line may set z->get_right() to nullptr
+        yp->set_right (x);
+        w = yp->get_left();
     }
 
     // Next if-statement may change z->subtree_size_, so we save it
     auto z_size = z->subtree_size_;
 
-    if (auto yp = y->parent_; x != nullptr)
+    if (auto yp = y->get_parent(); x != nullptr)
     {
-        x->parent_ = yp;
+        x->set_parent (yp);
         yp->subtree_size_ -= (y->subtree_size_ - x->subtree_size_);
     }
     else
@@ -287,16 +295,16 @@ void erase (Node_T *root, Node_T *z) noexcept
                 ypp->subtree_size_ -= dec;
         }
         
-        auto zl = z->left_;
-        auto zr = z->right_;
+        auto zl = z->get_left();
+        auto zr = z->get_right();
 
         // We are sure that zl != nullptr because of (*)
-        zl->parent_ = y;
+        zl->set_parent (y);
         if (zr)
-            zr->parent_ = y;
+            zr->set_parent (y);
 
-        y->left_ = zl;
-        y->right_ = zr;
+        y->set_left (zl);
+        y->set_right (zr);
 
         y->subtree_size_ = (zl ? zl->subtree_size_ : 0) +
                            (zr ? zr->subtree_size_ : 0) + 1;
@@ -305,28 +313,31 @@ void erase (Node_T *root, Node_T *z) noexcept
 
         if (is_left_child (z))
         {
-            auto zp = z->parent_;
-            zp->left_ = y;
+            auto zp = z->get_parent();
+            zp->set_left (y);
             zp->subtree_size_ += (y->subtree_size_ - z_size);
         }
         else
         {
             auto zp = z->parent_unsafe();
-            zp->right_ = y;
+            zp->set_right (y);
             zp->subtree_size_ += (y->subtree_size_ - z_size);
         }
 
-        y->parent_ = z->parent_;
+        y->set_parent (z->get_parent());
 
         if (z == root)
             root = y;
     }
 
-    if (z->parent_ != end_node)
+    if (z->get_parent() != end_node)
     {
         auto zp = z->parent_unsafe();
-        for (auto node = zp->parent_; node != end_node; node = static_cast<Node_T *>(node)->parent_)
+        for (auto node = zp->get_parent(); node != end_node;
+             node = static_cast<Node_T *>(node)->get_parent())
+        {
             node->subtree_size_--;
+        }
         end_node->subtree_size_--;
     }
 
@@ -392,18 +403,18 @@ private:
 
         void clean_up ()
         {
-            for (node_ptr node = end_node_.left_, save{}; node != nullptr; node = save)
+            for (node_ptr node = end_node_.get_left(), save{}; node != nullptr; node = save)
             {
-                if (node->left_ == nullptr)
+                if (node->get_left() == nullptr)
                 {
-                    save = node->right_;
+                    save = node->get_right();
                     delete node;
                 }
                 else
                 {
-                    save = node->left_;
-                    node->left_ = save->right_;
-                    save->right_ = node;
+                    save = node->get_left();
+                    node->set_left (save->get_right());
+                    save->set_right (node);
                 }
             }
         }
@@ -505,14 +516,14 @@ public:
         root_.clean_up ();
 
         leftmost_ = std::addressof (end_node());
-        root() = nullptr;
+        set_root (nullptr);
 
         end_node().subtree_size_ = 1;
     }
 
     std::pair<iterator, bool> insert (const key_type &key)
     {
-        auto [node, parent, side] = find_v2 (root(), key);
+        auto [node, parent, side] = find_v2 (get_root(), key);
     
         if (node == nullptr) // No node with such key in the tree
         {
@@ -544,7 +555,7 @@ public:
         if (node == leftmost_)
             leftmost_ = pos.node_;
 
-        detail::erase (root(), static_cast<node_ptr>(node));
+        detail::erase (get_root(), static_cast<node_ptr>(node));
         delete node;
 
         assert (search_verifier());
@@ -570,7 +581,7 @@ public:
 
     const_iterator find (const key_type &key) const
     {
-        auto node = find (root(), key);
+        auto node = find (get_root(), key);
         return (node) ? const_iterator{node} : end();
     }
 
@@ -581,7 +592,7 @@ public:
 
     const_iterator lower_bound (const key_type &key) const
     {
-        auto node = lower_bound (root(), key);
+        auto node = lower_bound (get_root(), key);
         return (node) ? const_iterator{node} : end();
     }
 
@@ -592,7 +603,7 @@ public:
 
     const_iterator upper_bound (const key_type &key) const
     {
-        auto node = upper_bound (root(), key);
+        auto node = upper_bound (get_root(), key);
         return (node) ? const_iterator{node} : end();
     }
 
@@ -610,7 +621,7 @@ public:
         if (empty() || k == 0)
             return end();
         
-        auto node = detail::kth_smallest (root(), k);
+        auto node = detail::kth_smallest (get_root(), k);
         return (node) ? const_iterator{node} : end();
     }
 
@@ -630,7 +641,7 @@ public:
         if (it == end())
             return size();
         else
-            return detail::n_less_than<const_end_node_ptr> (root(), it.node_);
+            return detail::n_less_than<const_end_node_ptr> (get_root(), it.node_);
     }
 
     #ifdef DEBUG
@@ -651,13 +662,14 @@ private:
     end_node_type &end_node () noexcept { return root_.end_node_; }
     const end_node_type &end_node () const noexcept { return root_.end_node_; }
 
-    node_ptr &root () noexcept { return end_node().left_; }
-    const_node_ptr root () const noexcept { return end_node().left_; }
+    void set_root (node_ptr new_root) noexcept { return end_node().set_left (new_root); }
+    const_node_ptr get_root () const noexcept { return end_node().get_left(); }
+    node_ptr get_root () noexcept { return end_node().get_left(); }
 
     const_node_ptr find (const_node_ptr node, const key_type &key) const
     {
         while (node && (comp_(key, node->key()) || comp_(node->key(), key)))
-            node = comp_(key, node->key()) ? node->left_ : node->right_;
+            node = comp_(key, node->key()) ? node->get_left() : node->get_right();
 
         return node;
     }
@@ -672,7 +684,7 @@ private:
     // No need for const overload as find_v2 is used only in insert
     std::tuple<node_ptr, end_node_ptr, Side> find_v2 (node_ptr node, const key_type &key)
     {
-        // (parent == nullptr) ==> (key == root().key())
+        // (parent == nullptr) ==> (key == get_root().key())
         // (node != nullptr) ==> (parent != nullptr)
 
         end_node_ptr parent = nullptr;
@@ -687,12 +699,12 @@ private:
             parent = node;
             if (is_less)
             {
-                node = node->left_;
+                node = node->get_left();
                 side = Side::left;
             }
             else
             {
-                node = node->right_;
+                node = node->get_right();
                 side = Side::right;
             }
         }
@@ -709,10 +721,10 @@ private:
             if (!comp_(node->key(), key))
             {
                 result = node;
-                node = node->left_;
+                node = node->get_left();
             }
             else
-                node = node->right_;
+                node = node->get_right();
         }
 
         return result;
@@ -732,10 +744,10 @@ private:
             if (comp_(key, node->key()))
             {
                 result = node;
-                node = node->left_;
+                node = node->get_left();
             }
             else
-                node = node->right_;
+                node = node->get_right();
         }
 
         return result;
@@ -749,23 +761,23 @@ private:
     node_ptr insert_hint_unique (const key_type &key, end_node_ptr parent, Side side)
     {
         auto new_node = new node_type{key, color_type::red};
-        new_node->parent_ = parent;
+        new_node->set_parent (parent);
 
         if (side == Side::left)
-            parent->left_ = new_node;
+            parent->set_left (new_node);
         else
-            new_node->parent_unsafe()->right_ = new_node;
+            new_node->parent_unsafe()->set_right (new_node);
 
         for (auto node = parent; node != std::addressof (end_node());
-            node = static_cast<node_ptr>(node)->parent_)
+            node = static_cast<node_ptr>(node)->get_parent())
         {
             node->subtree_size_++;
         }
         end_node().subtree_size_++;
 
-        detail::rb_insert_fixup (root(), new_node);
+        detail::rb_insert_fixup (get_root(), new_node);
 
-        if (new_node == leftmost_->left_)
+        if (new_node == leftmost_->get_left())
             leftmost_ = new_node;
 
         assert (search_verifier ());
@@ -777,7 +789,7 @@ private:
 
     void insert_unique (const key_type &key)
     {
-        auto [node, parent, side] = find_v2 (root(), key);
+        auto [node, parent, side] = find_v2 (get_root(), key);
     
         if (node == nullptr)
             insert_hint_unique (key, parent ? parent : std::addressof (end_node()), side);
@@ -790,19 +802,19 @@ private:
 
     bool red_black_verifier () const
     {
-        if (root() == nullptr)
+        if (get_root() == nullptr)
             return true; // empty tree
         
-        if (root()->parent_ != std::addressof (end_node()))
+        if (get_root()->get_parent() != std::addressof (end_node()))
             return false;
         
-        if (!detail::is_left_child (root()))
+        if (!detail::is_left_child (get_root()))
             return false;
 
-        if (root()->color_ != color_type::black)
+        if (get_root()->color_ != color_type::black)
             return false;
 
-        return (detail::red_black_verifier (root()) != 0);
+        return (detail::red_black_verifier (get_root()) != 0);
     }
 
     bool subtree_sizes_verifier () const noexcept
@@ -813,8 +825,10 @@ private:
         for (auto it = begin(), ite = end(); it != ite; ++it)
         {
             auto node = static_cast<const_node_ptr>(it.node_);
-            auto expected_size = 1 + (node->left_ ? node->left_->subtree_size_ : size_type{0}) +
-                                 (node->right_ ? node->right_->subtree_size_ : size_type{0});
+            auto nl = node->get_left();
+            auto nr = node->get_right();
+            auto expected_size = 1 + (nl ? nl->subtree_size_ : size_type{0}) +
+                                     (nr ? nr->subtree_size_ : size_type{0});
             
             if (expected_size != node->subtree_size_)
                 return false;

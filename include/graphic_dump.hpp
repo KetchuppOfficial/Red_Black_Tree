@@ -33,11 +33,11 @@ void graphic_dump (std::ostream &os, const Node_T *begin, const End_Node<Node_T>
         os << ", label = \"key: " << node->key()
            << "| size: " << node->subtree_size_ << "\"];\n";
 
-        if (node->left_ == nullptr)
+        if (node->get_left() == nullptr)
             os << "\tleft_nil_node_" << node << " [shape = record, "
                << "color = red, style = filled, fillcolor = black, fontcolor = white, label = \"nil\"];\n";
 
-        if (node->right_ == nullptr)
+        if (node->get_right() == nullptr)
             os << "\tright_nil_node_" << node << " [shape = record, "
                << "color = red, style = filled, fillcolor = black, fontcolor = white, label = \"nil\"];\n";
     };
@@ -45,21 +45,21 @@ void graphic_dump (std::ostream &os, const Node_T *begin, const End_Node<Node_T>
     auto arrow_dump = [&os](node_ptr node)
     {
         os << "    node_" << node << " -> ";
-        if (node->left_)
-            os << "node_" << node->left_;
+        if (node->get_left())
+            os << "node_" << node->get_left();
         else
             os << "left_nil_node_" << node;
         os << " [color = \"blue\"];\n";
 
         os << "    node_" << node << " -> ";
-        if (node->right_)
-            os << "node_" << node->right_;
+        if (node->get_right())
+            os << "node_" << node->get_right();
         else
             os << "right_nil_node_" << node;
         os << " [color = \"gold\"];\n";
             
         os << "    node_" << node << " -> "
-           << "node_" << node->parent_ << " [color = \"dimgray\"];\n";
+           << "node_" << node->get_parent() << " [color = \"dimgray\"];\n";
     };
 
     os << "digraph Tree\n"
@@ -78,7 +78,7 @@ void graphic_dump (std::ostream &os, const Node_T *begin, const End_Node<Node_T>
     for (end_node_ptr node = begin; node != end; node = successor (static_cast<node_ptr>(node)))
         arrow_dump (static_cast<node_ptr>(node));
 
-    os << "    node_" << end << " -> node_" << end->left_ << " [color = \"blue\"];\n}\n";
+    os << "    node_" << end << " -> node_" << end->get_left() << " [color = \"blue\"];\n}\n";
 }
 
 } // namespace detail

@@ -11,18 +11,18 @@ TEST (Nodes, Is_Left_Child)
     node_type left{1, color_type::black};
     node_type right{1, color_type::black};
 
-    parent.left_ = &left;
-    parent.right_ = &right;
-    left.parent_ = &parent;
-    right.parent_ = &parent;
+    parent.set_left (&left);
+    parent.set_right (&right);
+    left.set_parent (&parent);
+    right.set_parent (&parent);
 
     EXPECT_TRUE (yLab::detail::is_left_child (&left));
     EXPECT_FALSE (yLab::detail::is_left_child (&right));
 
     // Also works for end_node
     yLab::End_Node<node_type> end_node;
-    end_node.left_ = &left;
-    left.parent_ = &end_node;
+    end_node.set_left (&left);
+    left.set_parent (&end_node);
 
     EXPECT_TRUE (yLab::detail::is_left_child (&left));
 }
@@ -43,32 +43,32 @@ TEST (Nodes, Basic_Queries)
     node_type top{4, color_type::black};
     auto end_node_ptr = &end_node;
 
-    end_node.left_ = &top;
-    top.parent_ = end_node_ptr;
+    end_node.set_left (&top);
+    top.set_parent (end_node_ptr);
 
     node_type l_node{2, color_type::red};
     node_type r_node{6, color_type::red};
 
-    top.left_ = &l_node;
-    top.right_ = &r_node;
-    l_node.parent_ = &top;
-    r_node.parent_ = &top;
+    top.set_left (&l_node);
+    top.set_right (&r_node);
+    l_node.set_parent (&top);
+    r_node.set_parent (&top);
 
     node_type ll_node{1, color_type::black};
     node_type lr_node{3, color_type::black};
 
-    l_node.left_ = &ll_node;
-    l_node.right_ = &lr_node;
-    ll_node.parent_ = &l_node;
-    lr_node.parent_ = &l_node;
+    l_node.set_left (&ll_node);
+    l_node.set_right (&lr_node);
+    ll_node.set_parent (&l_node);
+    lr_node.set_parent (&l_node);
 
     node_type rl_node{5, color_type::black};
     node_type rr_node{7, color_type::black};
 
-    r_node.left_ = &rl_node;
-    r_node.right_ = &rr_node;
-    rl_node.parent_ = &r_node;
-    rr_node.parent_ = &r_node;
+    r_node.set_left (&rl_node);
+    r_node.set_right (&rr_node);
+    rl_node.set_parent (&r_node);
+    rr_node.set_parent (&r_node);
 
     // Minimum and maximum
 
@@ -141,15 +141,15 @@ TEST (Details, Left_Rotate_Plus)
     auto b_size = 20;
     auto c_size = 30;
 
-    x.parent_ = &root;
-    x.left_   = &a;
-    x.right_  = &y;
-    y.parent_ = &x;
-    y.left_   = &b;
-    y.right_  = &c;
-    a.parent_ = &x;
-    b.parent_ = &y;
-    c.parent_ = &y;
+    x.set_parent (&root);
+    x.set_left (&a);
+    x.set_right (&y);
+    y.set_parent (&x);
+    y.set_left (&b);
+    y.set_right (&c);
+    a.set_parent (&x);
+    b.set_parent (&y);
+    c.set_parent (&y);
     a.subtree_size_ = a_size;
     b.subtree_size_ = b_size;
     c.subtree_size_ = c_size;
@@ -158,15 +158,15 @@ TEST (Details, Left_Rotate_Plus)
 
     yLab::detail::left_rotate_plus (&x);
 
-    EXPECT_EQ (y.parent_, &root);
-    EXPECT_EQ (y.left_,   &x);
-    EXPECT_EQ (y.right_,  &c);
-    EXPECT_EQ (x.parent_, &y);
-    EXPECT_EQ (x.left_,   &a);
-    EXPECT_EQ (x.right_,  &b);
-    EXPECT_EQ (a.parent_, &x);
-    EXPECT_EQ (b.parent_, &x);
-    EXPECT_EQ (c.parent_, &y);
+    EXPECT_EQ (y.get_parent(), &root);
+    EXPECT_EQ (y.get_left(),   &x);
+    EXPECT_EQ (y.get_right(),  &c);
+    EXPECT_EQ (x.get_parent(), &y);
+    EXPECT_EQ (x.get_left(),   &a);
+    EXPECT_EQ (x.get_right(),  &b);
+    EXPECT_EQ (a.get_parent(), &x);
+    EXPECT_EQ (b.get_parent(), &x);
+    EXPECT_EQ (c.get_parent(), &y);
     EXPECT_EQ (x.subtree_size_, a_size + b_size + 1);
     EXPECT_EQ (y.subtree_size_, x.subtree_size_ + c_size + 1);
 }
@@ -195,15 +195,15 @@ TEST (Details, Right_Rotate_Plus)
     auto b_size = 20;
     auto c_size = 30;
 
-    x.parent_ = &root;
-    x.left_   = &y;
-    x.right_  = &c;
-    y.parent_ = &x;
-    y.left_   = &a;
-    y.right_  = &b;
-    a.parent_ = &y;
-    b.parent_ = &y;
-    c.parent_ = &x;
+    x.set_parent (&root);
+    x.set_left (&y);
+    x.set_right (&c);
+    y.set_parent (&x);
+    y.set_left (&a);
+    y.set_right (&b);
+    a.set_parent (&y);
+    b.set_parent (&y);
+    c.set_parent (&x);
     a.subtree_size_ = a_size;
     b.subtree_size_ = b_size;
     c.subtree_size_ = c_size;
@@ -212,15 +212,15 @@ TEST (Details, Right_Rotate_Plus)
 
     yLab::detail::right_rotate_plus (&x);
 
-    EXPECT_EQ (y.parent_, &root);
-    EXPECT_EQ (y.left_,   &a);
-    EXPECT_EQ (y.right_,  &x);
-    EXPECT_EQ (x.parent_, &y);
-    EXPECT_EQ (x.left_,   &b);
-    EXPECT_EQ (x.right_,  &c);
-    EXPECT_EQ (a.parent_, &y);
-    EXPECT_EQ (b.parent_, &x);
-    EXPECT_EQ (c.parent_, &x);
+    EXPECT_EQ (y.get_parent(), &root);
+    EXPECT_EQ (y.get_left(),   &a);
+    EXPECT_EQ (y.get_right(),  &x);
+    EXPECT_EQ (x.get_parent(), &y);
+    EXPECT_EQ (x.get_left(),   &b);
+    EXPECT_EQ (x.get_right(),  &c);
+    EXPECT_EQ (a.get_parent(), &y);
+    EXPECT_EQ (b.get_parent(), &x);
+    EXPECT_EQ (c.get_parent(), &x);
     EXPECT_EQ (x.subtree_size_, b_size + c_size + 1);
     EXPECT_EQ (y.subtree_size_, x.subtree_size_ + a_size + 1);
 }
