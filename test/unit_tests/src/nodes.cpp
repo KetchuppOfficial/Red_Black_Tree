@@ -156,7 +156,7 @@ TEST (Details, Left_Rotate_Plus)
     y.subtree_size_ = b_size + c_size + 1;
     x.subtree_size_ = a_size + y.subtree_size_ + 1;
 
-    yLab::detail::left_rotate_plus (&x);
+    yLab::detail::left_rotate (&x);
 
     EXPECT_EQ (y.get_parent(), &root);
     EXPECT_EQ (y.get_left(),   &x);
@@ -210,7 +210,7 @@ TEST (Details, Right_Rotate_Plus)
     y.subtree_size_ = a_size + b_size + 1;
     x.subtree_size_ = y.subtree_size_ + c_size + 1;
 
-    yLab::detail::right_rotate_plus (&x);
+    yLab::detail::right_rotate (&x);
 
     EXPECT_EQ (y.get_parent(), &root);
     EXPECT_EQ (y.get_left(),   &a);

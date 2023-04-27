@@ -115,6 +115,15 @@ public:
     node_ptr parent_unsafe () { return static_cast<node_ptr>(parent_); }
 
     const key_type &key () const { return key_; }
+
+    void recalculate_subtree_size () noexcept
+    {
+        auto left = this->get_left();
+        auto left_size = left ? left->subtree_size_ : size_type{0};
+        auto right_size = right_ ? right_->subtree_size_ : size_type{0};
+
+        this->subtree_size_ = 1 + right_size + left_size;
+    }
 };
 
 namespace detail
@@ -201,26 +210,9 @@ void left_rotate (Node_T *x) noexcept
 
     y->set_left (x);
     x->set_parent (y);
-}
 
-template<typename Key_T>
-void left_rotate_plus (ARB_Node<Key_T> *x) noexcept
-{
-    using size_type = typename ARB_Node<Key_T>::size_type;
-    
-    assert (x && x->get_right());
-    
-    auto y = x->get_right();
-
-    auto a_size = x->subtree_size_ - y->subtree_size_ - 1;
-    auto b_size = (y->get_left()) ? y->get_left()->subtree_size_ : size_type{0};
-    auto c_size = (y->get_right()) ? y->get_right()->subtree_size_ : size_type{0};
-
-    left_rotate (x);
-
-    auto x_size = a_size + b_size + 1;
-    x->subtree_size_ = x_size;
-    y->subtree_size_ = x_size + c_size + 1;
+    x->recalculate_subtree_size();
+    y->recalculate_subtree_size();
 }
 
 template <typename Node_T>
@@ -243,28 +235,9 @@ void right_rotate (Node_T *x) noexcept
 
     y->set_right (x);
     x->set_parent (y);
-}
 
-template<typename Key_T>
-void right_rotate_plus (ARB_Node<Key_T> *x) noexcept
-{
-    using size_type = typename ARB_Node<Key_T>::size_type;
-    
-    assert (x && x->get_left());
-    
-    auto y = x->get_left();
-    auto yl = y->get_left();
-    auto yr = y->get_right();
-
-    auto c_size = x->subtree_size_ - y->subtree_size_ - 1;
-    auto a_size = yl ? yl->subtree_size_ : size_type{0};
-    auto b_size = yr ? yr->subtree_size_ : size_type{0};
-
-    right_rotate (x);
-
-    auto x_size = b_size + c_size + 1;
-    x->subtree_size_ = x_size;
-    y->subtree_size_ = a_size + x_size + 1;
+    x->recalculate_subtree_size();
+    y->recalculate_subtree_size();
 }
 
 template<typename Node_Ptr>

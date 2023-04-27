@@ -80,10 +80,10 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
                 if (!is_left_child (new_node))
                 {
                     new_node = new_node->parent_unsafe();
-                    left_rotate_plus (new_node);
+                    left_rotate (new_node);
                 }
 
-                right_rotate_plus (fixup_subroutine_2 (new_node));
+                right_rotate (fixup_subroutine_2 (new_node));
                 break;
             }
         }
@@ -99,10 +99,10 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
                 if (is_left_child (new_node))
                 {
                     new_node = new_node->parent_unsafe();
-                    right_rotate_plus (new_node);
+                    right_rotate (new_node);
                 }
 
-                left_rotate_plus (fixup_subroutine_2 (new_node));
+                left_rotate (fixup_subroutine_2 (new_node));
                 break;
             }
         }
@@ -128,7 +128,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 
                     w->color_ = color_type::black;
                     wp->color_ = color_type::red;
-                    left_rotate_plus (wp);
+                    left_rotate (wp);
 
                     auto wl = w->get_left();
                     if (root == wl)
@@ -160,7 +160,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                     {
                         wl->color_ = color_type::black;
                         w->color_ = color_type::red;
-                        right_rotate_plus (w);
+                        right_rotate (w);
                         w = w->parent_unsafe();
                     }
 
@@ -168,7 +168,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                     w->color_ = wp->color_;
                     wp->color_ = color_type::black;
                     wr->color_ = color_type::black;
-                    left_rotate_plus (wp);
+                    left_rotate (wp);
                     break;
                 }
             }
@@ -180,7 +180,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 
                     w->color_ = color_type::black;
                     wp->color_ = color_type::red;
-                    right_rotate_plus (wp);
+                    right_rotate (wp);
 
                     auto wr = w->get_right();
                     if (root == wr)
@@ -204,7 +204,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                     }
 
                     w = is_left_child (x) ? x->parent_unsafe()->get_right()
-                                          : x->parent_unsafe()->get_left();
+                                          : x->get_parent()->get_left();
                 }
                 else
                 {
@@ -212,7 +212,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                     {
                         wr->color_ = color_type::black;
                         w->color_ = color_type::red;
-                        left_rotate_plus (w);
+                        left_rotate (w);
                         w = w->parent_unsafe();
                     }
 
@@ -221,7 +221,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                     w->color_ = wp->color_;
                     wp->color_ = color_type::black;
                     wl->color_ = color_type::black;
-                    right_rotate_plus (wp);
+                    right_rotate (wp);
                     break;
                 }
             }
