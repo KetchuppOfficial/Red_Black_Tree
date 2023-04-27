@@ -249,7 +249,7 @@ Node_Ptr kth_smallest (Node_Ptr root, std::size_t k) noexcept
         return nullptr;
 
     auto left = root->get_left();
-    auto left_size = (left) ? left->subtree_size_ : size_type{0};
+    auto left_size = left ? left->subtree_size_ : size_type{0};
     
     while (k != left_size + 1)
     {    
@@ -262,7 +262,7 @@ Node_Ptr kth_smallest (Node_Ptr root, std::size_t k) noexcept
         }
 
         left = root->get_left();
-        left_size = (left) ? left->subtree_size_ : size_type{0};
+        left_size = left ? left->subtree_size_ : size_type{0};
     }
 
     return root;

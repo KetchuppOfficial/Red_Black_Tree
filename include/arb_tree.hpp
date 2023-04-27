@@ -151,8 +151,10 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                         break;
                     }
 
-                    w = is_left_child (x) ? x->parent_unsafe()->get_right()
-                                          : x->get_parent()->get_left();
+                    if (is_left_child (x))
+                        w = x->parent_unsafe()->get_right();
+                    else
+                        w = x->get_parent()->get_left();
                 }
                 else
                 {
@@ -203,8 +205,10 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
                         break;
                     }
 
-                    w = is_left_child (x) ? x->parent_unsafe()->get_right()
-                                          : x->get_parent()->get_left();
+                    if (is_left_child (x))
+                        w = x->parent_unsafe()->get_right();
+                    else
+                        w = x->get_parent()->get_left();
                 }
                 else
                 {
@@ -238,7 +242,11 @@ void erase (Node_T *root, Node_T *z) noexcept
     
     // if (z == maximum (root)) then z->get_right() == nullptr ==> y = z
     // else exists successor (z) != end_node
-    auto y = (z->get_left() && z->get_right()) ? static_cast<Node_T *>(successor (z)) : z;
+    Node_T *y;
+    if (z->get_left() && z->get_right())
+        y = static_cast<Node_T *>(successor (z));
+    else
+        y = z;
 
     // (x == nullptr) <==> (y->get_left() == nullptr) && (y->get_right() == nullptr)
     auto x = y->get_left() ? y->get_left() : y->get_right();
@@ -290,7 +298,7 @@ void erase (Node_T *root, Node_T *z) noexcept
     {
         if (auto yp = y->parent_unsafe(); yp != z)
         {
-            auto dec = (x) ? y->subtree_size_ - x->subtree_size_ : y->subtree_size_;
+            auto dec = x ? y->subtree_size_ - x->subtree_size_ : y->subtree_size_;
             for (auto ypp = yp->parent_unsafe(); ypp != z; ypp = ypp->parent_unsafe())
                 ypp->subtree_size_ -= dec;
         }
@@ -527,7 +535,9 @@ public:
     
         if (node == nullptr) // No node with such key in the tree
         {
-            auto new_node = insert_hint_unique (key, parent ? parent : std::addressof (end_node()), side);
+            auto actual_parent = parent ? parent : std::addressof (end_node());
+            auto new_node = insert_hint_unique (key, actual_parent, side);
+
             return std::make_pair (iterator{new_node}, true);
         }
         else
@@ -582,7 +592,7 @@ public:
     const_iterator find (const key_type &key) const
     {
         auto node = find (get_root(), key);
-        return (node) ? const_iterator{node} : end();
+        return node ? const_iterator{node} : end();
     }
 
     iterator find (const key_type &key)
@@ -593,7 +603,7 @@ public:
     const_iterator lower_bound (const key_type &key) const
     {
         auto node = lower_bound (get_root(), key);
-        return (node) ? const_iterator{node} : end();
+        return node ? const_iterator{node} : end();
     }
 
     iterator lower_bound (const key_type &key)
@@ -604,7 +614,7 @@ public:
     const_iterator upper_bound (const key_type &key) const
     {
         auto node = upper_bound (get_root(), key);
-        return (node) ? const_iterator{node} : end();
+        return node ? const_iterator{node} : end();
     }
 
     iterator upper_bound (const key_type &key)
@@ -622,7 +632,7 @@ public:
             return end();
         
         auto node = detail::kth_smallest (get_root(), k);
-        return (node) ? const_iterator{node} : end();
+        return node ? const_iterator{node} : end();
     }
 
     iterator kth_smallest (size_type k)
@@ -792,7 +802,10 @@ private:
         auto [node, parent, side] = find_v2 (get_root(), key);
     
         if (node == nullptr)
-            insert_hint_unique (key, parent ? parent : std::addressof (end_node()), side);
+        {
+            auto actual_parent = parent ? parent : std::addressof (end_node());
+            insert_hint_unique (key, actual_parent, side);
+        }   
     }
 
     bool search_verifier () const
