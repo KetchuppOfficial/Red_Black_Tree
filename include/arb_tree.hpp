@@ -110,6 +110,14 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
 }
 
 template<typename Node_T>
+bool node_color_not_red (Node_T *node)
+{
+    using color_type = typename Node_T::color_type;
+    
+    return (node == nullptr || node->color_ == color_type::black);
+}
+
+template<typename Node_T>
 void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 {
     using color_type = typename Node_T::color_type;
@@ -141,8 +149,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 
             auto wl = w->get_left();
             auto wr = w->get_right();
-            if ((wl == nullptr || wl->color_ == color_type::black) &&
-                (wr == nullptr || wr->color_ == color_type::black))
+            if (node_color_not_red (wl) && node_color_not_red (wr))
             {
                 w->color_ = color_type::red;
                 x = w->parent_unsafe();
@@ -160,7 +167,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
             }
             else
             {
-                if (wr == nullptr || wr->color_ == color_type::black)
+                if (node_color_not_red (wr))
                 {
                     wl->color_ = color_type::black;
                     w->color_ = color_type::red;
@@ -195,8 +202,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 
             auto wl = w->get_left();
             auto wr = w->get_right();
-            if ((wl == nullptr || wl->color_ == color_type::black) &&
-                (wr == nullptr || wr->color_ == color_type::black))
+            if (node_color_not_red (wl) && node_color_not_red (wr))
             {
                 w->color_ = color_type::red;
                 x = w->parent_unsafe();
@@ -214,7 +220,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
             }
             else
             {
-                if (wl == nullptr || wl->color_ == color_type::black)
+                if (node_color_not_red (wl))
                 {
                     wr->color_ = color_type::black;
                     w->color_ = color_type::red;
