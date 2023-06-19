@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <cassert>
 #include <compare>
+#include <tuple>
 
 #include "nodes.hpp"
 #include "tree_iterator.hpp"
@@ -110,11 +111,100 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
 }
 
 template<typename Node_T>
-bool node_color_not_red (Node_T *node)
+bool node_color_not_red (const Node_T *node)
 {
     using color_type = typename Node_T::color_type;
     
     return (node == nullptr || node->color_ == color_type::black);
+}
+
+enum Side { left, right };
+
+template<typename Node_T>
+std::pair<Node_T *, Node_T *> w_is_red (Node_T *root, Node_T *w, Side side)
+{
+    using color_type = typename Node_T::color_type;
+    
+    auto wp = w->parent_unsafe();
+
+    w->color_ = color_type::black;
+    wp->color_ = color_type::red;
+
+    Node_T *w_child, *new_w;
+    if (side == left)
+    {
+        left_rotate (wp);
+        w_child = w->get_left();
+        new_w = w_child->get_right();
+    }
+    else
+    {
+        right_rotate (wp);
+        w_child = w->get_right();
+        new_w = w_child->get_left();
+    }
+
+    if (root == w_child)
+        root = w;
+
+    return std::make_pair (root, new_w);
+}
+
+template<typename Node_T>
+std::tuple<Node_T *, Node_T *, bool> w_has_no_red_child (const Node_T *root, Node_T *x, Node_T *w)
+{
+    using color_type = typename Node_T::color_type;
+    
+    auto to_break = false;
+    
+    w->color_ = color_type::red;
+    x = w->parent_unsafe();
+
+    if (x == root || x->color_ == color_type::red)
+    {
+        x->color_ = color_type::black;
+        to_break = true;
+    }
+
+    if (is_left_child (x))
+        w = x->parent_unsafe()->get_right();
+    else
+        w = x->get_parent()->get_left();
+
+    return std::make_tuple (x, w, to_break);
+}
+
+template<typename Node_T>
+void w_has_red_child (Node_T *w, Node_T *w_child_1, Node_T *w_child_2)
+{
+    using color_type = typename Node_T::color_type;
+    
+    bool children_in_reverse = false;
+    if (is_left_child (w_child_2))
+        children_in_reverse = true;
+    
+    if (node_color_not_red (w_child_2))
+    {
+        w_child_1->color_ = color_type::black;
+        w->color_ = color_type::red;
+
+        if (children_in_reverse)
+            left_rotate (w);
+        else
+            right_rotate (w);
+        
+        w = w->parent_unsafe();
+    }
+
+    auto wp = w->parent_unsafe();
+    w->color_ = wp->color_;
+    wp->color_ = color_type::black;
+    w_child_2->color_ = color_type::black;
+
+    if (children_in_reverse)
+        right_rotate (wp);
+    else
+        left_rotate (wp);
 }
 
 template<typename Node_T>
@@ -134,52 +224,25 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
         {
             if (w->color_ == color_type::red)
             {
-                auto wp = w->parent_unsafe();
-
-                w->color_ = color_type::black;
-                wp->color_ = color_type::red;
-                left_rotate (wp);
-
-                auto wl = w->get_left();
-                if (root == wl)
-                    root = w;
-
-                w = wl->get_right();
+                auto [root_, w_] = w_is_red (root, w, Side::left);
+                root = root_;
+                w = w_;
             }
 
             auto wl = w->get_left();
             auto wr = w->get_right();
             if (node_color_not_red (wl) && node_color_not_red (wr))
             {
-                w->color_ = color_type::red;
-                x = w->parent_unsafe();
-
-                if (x == root || x->color_ == color_type::red)
-                {
-                    x->color_ = color_type::black;
+                auto [x_, w_, to_break] = w_has_no_red_child (root, x, w);
+                if (to_break)
                     break;
-                }
 
-                if (is_left_child (x))
-                    w = x->parent_unsafe()->get_right();
-                else
-                    w = x->get_parent()->get_left();
+                x = x_;
+                w = w_;
             }
             else
             {
-                if (node_color_not_red (wr))
-                {
-                    wl->color_ = color_type::black;
-                    w->color_ = color_type::red;
-                    right_rotate (w);
-                    w = w->parent_unsafe();
-                }
-
-                auto wp = w->parent_unsafe();
-                w->color_ = wp->color_;
-                wp->color_ = color_type::black;
-                wr->color_ = color_type::black;
-                left_rotate (wp);
+                w_has_red_child (w, wl, wr);
                 break;
             }
         }
@@ -187,53 +250,25 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
         {
             if (w->color_ == color_type::red)
             {
-                auto wp = w->parent_unsafe();
-
-                w->color_ = color_type::black;
-                wp->color_ = color_type::red;
-                right_rotate (wp);
-
-                auto wr = w->get_right();
-                if (root == wr)
-                    root = w;
-
-                w = wr->get_left();
+                auto [root_, w_] = w_is_red (root, w, Side::right);
+                root = root_;
+                w = w_;
             }
 
             auto wl = w->get_left();
             auto wr = w->get_right();
             if (node_color_not_red (wl) && node_color_not_red (wr))
             {
-                w->color_ = color_type::red;
-                x = w->parent_unsafe();
-
-                if (x == root || x->color_ == color_type::red)
-                {
-                    x->color_ = color_type::black;
+                auto [x_, w_, to_break] = w_has_no_red_child (root, x, w);
+                if (to_break)
                     break;
-                }
 
-                if (is_left_child (x))
-                    w = x->parent_unsafe()->get_right();
-                else
-                    w = x->get_parent()->get_left();
+                x = x_;
+                w = w_;
             }
             else
             {
-                if (node_color_not_red (wl))
-                {
-                    wr->color_ = color_type::black;
-                    w->color_ = color_type::red;
-                    left_rotate (w);
-                    w = w->parent_unsafe();
-                }
-
-                auto wp = w->parent_unsafe();
-
-                w->color_ = wp->color_;
-                wp->color_ = color_type::black;
-                wl->color_ = color_type::black;
-                right_rotate (wp);
+                w_has_red_child (w, wr, wl);
                 break;
             }
         }
