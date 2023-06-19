@@ -115,122 +115,165 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
     using color_type = typename Node_T::color_type;
     
     if (x)
-        x->color_ = color_type::black;
-    else
     {
-        while (true)
+        x->color_ = color_type::black;
+        return;
+    }
+
+    while (true)
+    {
+        if (!is_left_child (w))
         {
-            if (!is_left_child (w))
+            if (w->color_ == color_type::red)
             {
-                if (w->color_ == color_type::red)
-                {
-                    auto wp = w->parent_unsafe();
+                auto wp = w->parent_unsafe();
 
-                    w->color_ = color_type::black;
-                    wp->color_ = color_type::red;
-                    left_rotate (wp);
-
-                    auto wl = w->get_left();
-                    if (root == wl)
-                        root = w;
-
-                    w = wl->get_right();
-                }
+                w->color_ = color_type::black;
+                wp->color_ = color_type::red;
+                left_rotate (wp);
 
                 auto wl = w->get_left();
-                auto wr = w->get_right();
-                if ((wl == nullptr || wl->color_ == color_type::black) &&
-                    (wr == nullptr || wr->color_ == color_type::black))
+                if (root == wl)
+                    root = w;
+
+                w = wl->get_right();
+            }
+
+            auto wl = w->get_left();
+            auto wr = w->get_right();
+            if ((wl == nullptr || wl->color_ == color_type::black) &&
+                (wr == nullptr || wr->color_ == color_type::black))
+            {
+                w->color_ = color_type::red;
+                x = w->parent_unsafe();
+
+                if (x == root || x->color_ == color_type::red)
                 {
-                    w->color_ = color_type::red;
-                    x = w->parent_unsafe();
-
-                    if (x == root || x->color_ == color_type::red)
-                    {
-                        x->color_ = color_type::black;
-                        break;
-                    }
-
-                    if (is_left_child (x))
-                        w = x->parent_unsafe()->get_right();
-                    else
-                        w = x->get_parent()->get_left();
-                }
-                else
-                {
-                    if (wr == nullptr || wr->color_ == color_type::black)
-                    {
-                        wl->color_ = color_type::black;
-                        w->color_ = color_type::red;
-                        right_rotate (w);
-                        w = w->parent_unsafe();
-                    }
-
-                    auto wp = w->parent_unsafe();
-                    w->color_ = wp->color_;
-                    wp->color_ = color_type::black;
-                    wr->color_ = color_type::black;
-                    left_rotate (wp);
+                    x->color_ = color_type::black;
                     break;
                 }
+
+                if (is_left_child (x))
+                    w = x->parent_unsafe()->get_right();
+                else
+                    w = x->get_parent()->get_left();
             }
             else
             {
-                if (w->color_ == color_type::red)
+                if (wr == nullptr || wr->color_ == color_type::black)
                 {
-                    auto wp = w->parent_unsafe();
-
-                    w->color_ = color_type::black;
-                    wp->color_ = color_type::red;
-                    right_rotate (wp);
-
-                    auto wr = w->get_right();
-                    if (root == wr)
-                        root = w;
-
-                    w = wr->get_left();
-                }
-
-                auto wl = w->get_left();
-                auto wr = w->get_right();
-                if ((wl == nullptr || wl->color_ == color_type::black) &&
-                    (wr == nullptr || wr->color_ == color_type::black))
-                {
-                    w->color_ = color_type::red;
-                    x = w->parent_unsafe();
-
-                    if (x == root || x->color_ == color_type::red)
-                    {
-                        x->color_ = color_type::black;
-                        break;
-                    }
-
-                    if (is_left_child (x))
-                        w = x->parent_unsafe()->get_right();
-                    else
-                        w = x->get_parent()->get_left();
-                }
-                else
-                {
-                    if (wl == nullptr || wl->color_ == color_type::black)
-                    {
-                        wr->color_ = color_type::black;
-                        w->color_ = color_type::red;
-                        left_rotate (w);
-                        w = w->parent_unsafe();
-                    }
-
-                    auto wp = w->parent_unsafe();
-
-                    w->color_ = wp->color_;
-                    wp->color_ = color_type::black;
                     wl->color_ = color_type::black;
-                    right_rotate (wp);
+                    w->color_ = color_type::red;
+                    right_rotate (w);
+                    w = w->parent_unsafe();
+                }
+
+                auto wp = w->parent_unsafe();
+                w->color_ = wp->color_;
+                wp->color_ = color_type::black;
+                wr->color_ = color_type::black;
+                left_rotate (wp);
+                break;
+            }
+        }
+        else
+        {
+            if (w->color_ == color_type::red)
+            {
+                auto wp = w->parent_unsafe();
+
+                w->color_ = color_type::black;
+                wp->color_ = color_type::red;
+                right_rotate (wp);
+
+                auto wr = w->get_right();
+                if (root == wr)
+                    root = w;
+
+                w = wr->get_left();
+            }
+
+            auto wl = w->get_left();
+            auto wr = w->get_right();
+            if ((wl == nullptr || wl->color_ == color_type::black) &&
+                (wr == nullptr || wr->color_ == color_type::black))
+            {
+                w->color_ = color_type::red;
+                x = w->parent_unsafe();
+
+                if (x == root || x->color_ == color_type::red)
+                {
+                    x->color_ = color_type::black;
                     break;
                 }
+
+                if (is_left_child (x))
+                    w = x->parent_unsafe()->get_right();
+                else
+                    w = x->get_parent()->get_left();
+            }
+            else
+            {
+                if (wl == nullptr || wl->color_ == color_type::black)
+                {
+                    wr->color_ = color_type::black;
+                    w->color_ = color_type::red;
+                    left_rotate (w);
+                    w = w->parent_unsafe();
+                }
+
+                auto wp = w->parent_unsafe();
+
+                w->color_ = wp->color_;
+                wp->color_ = color_type::black;
+                wl->color_ = color_type::black;
+                right_rotate (wp);
+                break;
             }
         }
     }
+}
+
+template<typename Node_T>
+void z_doent_have_a_child (Node_T *x, Node_T *y, Node_T *z, typename Node_T::size_type z_size)
+{
+    if (auto yp = y->parent_unsafe(); yp != z)
+    {
+        auto dec = x ? y->subtree_size_ - x->subtree_size_ : y->subtree_size_;
+        for (auto ypp = yp->parent_unsafe(); ypp != z; ypp = ypp->parent_unsafe())
+            ypp->subtree_size_ -= dec;
+    }
+    
+    auto zl = z->get_left();
+    auto zr = z->get_right();
+
+    // We are sure that zl != nullptr because of (*)
+    zl->set_parent (y);
+    if (zr)
+        zr->set_parent (y);
+
+    y->set_left (zl);
+    y->set_right (zr);
+
+    y->subtree_size_ = (zl ? zl->subtree_size_ : 0) +
+                       (zr ? zr->subtree_size_ : 0) + 1;
+
+    y->color_ = z->color_;
+
+    if (is_left_child (z))
+    {
+        auto zp = z->get_parent();
+        zp->set_left (y);
+        zp->subtree_size_ += (y->subtree_size_ - z_size);
+    }
+    else
+    {
+        auto zp = z->parent_unsafe();
+        zp->set_right (y);
+        zp->subtree_size_ += (y->subtree_size_ - z_size);
+    }
+
+    y->set_parent (z->get_parent());
 }
 
 template<typename Node_T>
@@ -296,44 +339,8 @@ void erase (Node_T *root, Node_T *z) noexcept
 
     if (y != z)
     {
-        if (auto yp = y->parent_unsafe(); yp != z)
-        {
-            auto dec = x ? y->subtree_size_ - x->subtree_size_ : y->subtree_size_;
-            for (auto ypp = yp->parent_unsafe(); ypp != z; ypp = ypp->parent_unsafe())
-                ypp->subtree_size_ -= dec;
-        }
+        z_doent_have_a_child (x, y, z, z_size);
         
-        auto zl = z->get_left();
-        auto zr = z->get_right();
-
-        // We are sure that zl != nullptr because of (*)
-        zl->set_parent (y);
-        if (zr)
-            zr->set_parent (y);
-
-        y->set_left (zl);
-        y->set_right (zr);
-
-        y->subtree_size_ = (zl ? zl->subtree_size_ : 0) +
-                           (zr ? zr->subtree_size_ : 0) + 1;
-
-        y->color_ = z->color_;
-
-        if (is_left_child (z))
-        {
-            auto zp = z->get_parent();
-            zp->set_left (y);
-            zp->subtree_size_ += (y->subtree_size_ - z_size);
-        }
-        else
-        {
-            auto zp = z->parent_unsafe();
-            zp->set_right (y);
-            zp->subtree_size_ += (y->subtree_size_ - z_size);
-        }
-
-        y->set_parent (z->get_parent());
-
         if (z == root)
             root = y;
     }
@@ -342,7 +349,7 @@ void erase (Node_T *root, Node_T *z) noexcept
     {
         auto zp = z->parent_unsafe();
         for (auto node = zp->get_parent(); node != end_node;
-             node = static_cast<Node_T *>(node)->get_parent())
+            node = static_cast<Node_T *>(node)->get_parent())
         {
             node->subtree_size_--;
         }
