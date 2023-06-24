@@ -732,11 +732,6 @@ private:
         return node;
     }
 
-    node_ptr find (node_ptr node, const key_type &key)
-    {
-        return static_cast<const ARB_Tree &>(*this).find (node, key);
-    }
-
     using Side = detail::Side;
 
     // No need for const overload as find_v2 is used only in insert
@@ -788,11 +783,6 @@ private:
         return result;
     }
 
-    node_ptr lower_bound (node_ptr node, const key_type &key)
-    {
-        return static_cast<const ARB_Tree &>(*this).lower_bound (node, key);
-    }
-
     // Finds first element that is greater than key
     const_node_ptr upper_bound (const_node_ptr node, const key_type &key) const
     {
@@ -809,11 +799,6 @@ private:
         }
 
         return result;
-    }
-
-    node_ptr upper_bound (node_ptr node, const key_type &key)
-    {
-        return static_cast<const ARB_Tree &>(*this).upper_bound (node, key);
     }
 
     node_ptr insert_hint_unique (const key_type &key, end_node_ptr parent, Side side)
