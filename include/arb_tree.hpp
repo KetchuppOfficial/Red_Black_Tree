@@ -514,7 +514,7 @@ public:
         return *this;
     }
 
-    ARB_Tree (ARB_Tree &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_compare>)
+    ARB_Tree (ARB_Tree &&rhs)
              : root_{std::move (rhs.root_)},
                leftmost_{std::exchange (rhs.leftmost_, std::addressof (rhs.end_node()))},
                comp_{std::move (rhs.comp_)} {}

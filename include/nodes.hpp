@@ -30,8 +30,8 @@ public:
     End_Node (const End_Node &rhs) = delete;
     End_Node &operator= (const End_Node &rhs) = delete;
 
-    End_Node (End_Node &&rhs) noexcept : left_{std::exchange (rhs.left_, nullptr)},
-                                         subtree_size_{std::exchange (rhs.subtree_size_, 1)} {}
+    End_Node (End_Node &&rhs) : left_{std::exchange (rhs.left_, nullptr)},
+                                subtree_size_{std::exchange (rhs.subtree_size_, 1)} {}
 
     End_Node &operator= (End_Node &&rhs) noexcept
     {
@@ -84,7 +84,7 @@ public:
     ARB_Node (const ARB_Node &rhs) = delete;
     ARB_Node &operator= (const ARB_Node &rhs) = delete;
 
-    ARB_Node (ARB_Node &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_type>)
+    ARB_Node (ARB_Node &&rhs)
             : base_{std::move (rhs)},
               right_{std::exchange (rhs.right, nullptr)},
               parent_{std::exchange (rhs.parent_, nullptr)},
