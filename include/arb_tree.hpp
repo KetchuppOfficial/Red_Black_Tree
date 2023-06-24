@@ -118,7 +118,7 @@ bool node_color_not_red (const Node_T *node)
     return (node == nullptr || node->color_ == color_type::black);
 }
 
-enum Side { left, right };
+enum class Side { left, right };
 
 template<typename Node_T>
 std::pair<Node_T *, Node_T *> w_is_red (Node_T *root, Node_T *w, Side side)
@@ -131,7 +131,7 @@ std::pair<Node_T *, Node_T *> w_is_red (Node_T *root, Node_T *w, Side side)
     wp->color_ = color_type::red;
 
     Node_T *w_child, *new_w;
-    if (side == left)
+    if (side == Side::left)
     {
         left_rotate (wp);
         w_child = w->get_left();
@@ -737,7 +737,7 @@ private:
         return static_cast<const ARB_Tree &>(*this).find (node, key);
     }
 
-    enum class Side { left, right };
+    using Side = detail::Side;
 
     // No need for const overload as find_v2 is used only in insert
     std::tuple<node_ptr, end_node_ptr, Side> find_v2 (node_ptr node, const key_type &key)
