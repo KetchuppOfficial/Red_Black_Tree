@@ -276,7 +276,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 }
 
 template<typename Node_T>
-void z_doent_have_a_child (Node_T *x, Node_T *y, Node_T *z, typename Node_T::size_type z_size)
+void z_has_no_children (Node_T *x, Node_T *y, Node_T *z, typename Node_T::size_type z_size)
 {
     if (auto yp = y->parent_unsafe(); yp != z)
     {
@@ -380,7 +380,7 @@ void erase (Node_T *root, Node_T *z) noexcept
 
     if (y != z)
     {
-        z_doent_have_a_child (x, y, z, z_size);
+        z_has_no_children (x, y, z, z_size);
         
         if (z == root)
             root = y;
@@ -479,7 +479,7 @@ private:
     };
 
     Root_Wrapper root_{};
-    const_end_node_ptr leftmost_  = std::addressof (end_node());
+    const_end_node_ptr leftmost_ = std::addressof (end_node());
     key_compare comp_;
 
 public:
@@ -560,7 +560,7 @@ public:
     // Modifiers
 
     void swap (ARB_Tree &other) noexcept (std::is_nothrow_swappable_v<key_compare> &&
-                                         std::is_nothrow_swappable_v<end_node_type>)
+                                          std::is_nothrow_swappable_v<end_node_type>)
     {
         std::swap (root_, other.root_);
         std::swap (leftmost_, other.leftmost_);
