@@ -40,10 +40,10 @@ public:
         return *this;
     }
 
-    const_node_ptr get_left () const { return left_; }
-    node_ptr get_left () { return left_; }
+    const_node_ptr get_left () const noexcept { return left_; }
+    node_ptr get_left () noexcept { return left_; }
 
-    void set_left (node_ptr left) { left_ = left; }
+    void set_left (node_ptr left) noexcept { left_ = left; }
 
     virtual ~End_Node() = default;
 };
@@ -91,8 +91,7 @@ public:
               color_{std::move (rhs.color_)},
               key_{std::move (rhs.key_)} {}
 
-    ARB_Node &operator= (ARB_Node &&rhs) noexcept (std::is_nothrow_move_constructible_v<key_type> &&
-                                                   std::is_nothrow_move_assignable_v<key_type>)
+    ARB_Node &operator= (ARB_Node &&rhs) noexcept (std::is_nothrow_swappable_v<key_type>)
     {
         std::swap (static_cast<base_ &>(*this), static_cast<base_ &>(rhs));
         std::swap (right_, rhs.right_);
@@ -103,16 +102,16 @@ public:
         return *this;
     }
 
-    const_node_ptr get_right () const { return right_; }
-    node_ptr get_right () { return right_; }
-    void set_right (node_ptr right) { right_ = right; }
+    const_node_ptr get_right () const noexcept { return right_; }
+    node_ptr get_right () noexcept { return right_; }
+    void set_right (node_ptr right) noexcept { right_ = right; }
 
-    const_end_node_ptr get_parent () const { return parent_; }
-    end_node_ptr get_parent () { return parent_; }
-    void set_parent (end_node_ptr parent) { parent_ = parent; }
+    const_end_node_ptr get_parent () const noexcept { return parent_; }
+    end_node_ptr get_parent () noexcept { return parent_; }
+    void set_parent (end_node_ptr parent) noexcept { parent_ = parent; }
 
-    const_node_ptr parent_unsafe () const { return static_cast<const_node_ptr>(parent_); }
-    node_ptr parent_unsafe () { return static_cast<node_ptr>(parent_); }
+    const_node_ptr parent_unsafe () const noexcept { return static_cast<const_node_ptr>(parent_); }
+    node_ptr parent_unsafe () noexcept { return static_cast<node_ptr>(parent_); }
 
     const key_type &key () const { return key_; }
 
