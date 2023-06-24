@@ -303,11 +303,12 @@ std::size_t red_black_verifier (const Node_T *root) noexcept
     auto left = root->get_left();
     auto right = root->get_right();
 
-    if ((left && left->get_parent() != root) &&
+    if ((left && left->get_parent() != root) ||
         (right && right->get_parent() != root))
         return 0;
 
-    if (root->color_ == color_type::red)
+    auto is_root_red = root->color_ == color_type::red; 
+    if (is_root_red)
     {
         if ((left  && left->color_  == color_type::red) ||
             (right && right->color_ == color_type::red))
@@ -315,12 +316,11 @@ std::size_t red_black_verifier (const Node_T *root) noexcept
     }
 
     auto left_black_height = red_black_verifier (left);
-    if (left_black_height == 0)
-        return 0;
-    if (left_black_height != red_black_verifier (right))
+    if (left_black_height == 0 || 
+        left_black_height != red_black_verifier (right))
         return 0;
 
-    return left_black_height + ((root->color_ == color_type::black) ? 1 : 0);
+    return left_black_height + !is_root_red;
 }
 
 } // namespace detail
