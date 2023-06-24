@@ -23,11 +23,11 @@ namespace detail
 {
 
 template <typename Node_T>
-void rb_insert_fixup (const Node_T *root, Node_T *new_node)
+void rb_insert_fixup (const Node_T *root, Node_T *new_node) noexcept
 {       
     using color_type = typename Node_T::color_type;
 
-    auto fixup_subroutine_1 = [](Node_T *new_node, Node_T *uncle, const Node_T *root)
+    auto fixup_subroutine_1 = [](Node_T *new_node, Node_T *uncle, const Node_T *root) noexcept
     {
         new_node = new_node->parent_unsafe();
         new_node->color_ = color_type::black;
@@ -40,7 +40,7 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
         return new_node;
     };
 
-    auto fixup_subroutine_2 = [](Node_T *new_node)
+    auto fixup_subroutine_2 = [](Node_T *new_node) noexcept
     {        
         new_node = new_node->parent_unsafe();
         new_node->color_ = color_type::black;
@@ -111,7 +111,7 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node)
 }
 
 template<typename Node_T>
-bool node_color_not_red (const Node_T *node)
+bool node_color_not_red (const Node_T *node) noexcept
 {
     using color_type = typename Node_T::color_type;
     
@@ -175,7 +175,7 @@ std::tuple<Node_T *, Node_T *, bool> w_has_no_red_child (const Node_T *root, Nod
 }
 
 template<typename Node_T>
-void w_has_red_child (Node_T *w, Node_T *w_child_1, Node_T *w_child_2)
+void w_has_red_child (Node_T *w, Node_T *w_child_1, Node_T *w_child_2) noexcept
 {
     using color_type = typename Node_T::color_type;
     
@@ -276,7 +276,7 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 }
 
 template<typename Node_T>
-void z_has_no_children (Node_T *x, Node_T *y, Node_T *z, typename Node_T::size_type z_size)
+void z_has_no_children (Node_T *x, Node_T *y, Node_T *z, typename Node_T::size_type z_size) noexcept
 {
     if (auto yp = y->parent_unsafe(); yp != z)
     {
@@ -318,7 +318,7 @@ void z_has_no_children (Node_T *x, Node_T *y, Node_T *z, typename Node_T::size_t
 }
 
 template<typename Node_T>
-void erase (Node_T *root, Node_T *z) noexcept
+void erase (Node_T *root, Node_T *z)
 {    
     using color_type = typename Node_T::color_type;
     
@@ -544,8 +544,8 @@ public:
 
     iterator begin () noexcept { return iterator{leftmost_}; }
     const_iterator begin () const noexcept { return const_iterator{leftmost_}; }
-    iterator end () { return iterator{std::addressof (end_node())}; }
-    const_iterator end () const { return const_iterator{std::addressof (end_node())}; }
+    iterator end () noexcept { return iterator{std::addressof (end_node())}; }
+    const_iterator end () const noexcept { return const_iterator{std::addressof (end_node())}; }
 
     reverse_iterator rbegin () noexcept { return reverse_iterator{end()}; }
     const_reverse_iterator rbegin () const noexcept { return const_reverse_iterator{end()}; }
@@ -674,8 +674,6 @@ public:
 
     const_iterator kth_smallest (size_type k) const
     {
-        assert (subtree_sizes_verifier ());
-
         if (empty() || k == 0)
             return end();
         
@@ -690,8 +688,6 @@ public:
 
     size_type n_less_than (const key_type &key) const
     {
-        assert (subtree_sizes_verifier ());
-        
         if (empty())
             return 0;
 
@@ -717,8 +713,8 @@ public:
 
 private:
 
-    end_node_type &end_node () noexcept { return root_.end_node_; }
-    const end_node_type &end_node () const noexcept { return root_.end_node_; }
+    end_node_type &end_node () { return root_.end_node_; }
+    const end_node_type &end_node () const { return root_.end_node_; }
 
     void set_root (node_ptr new_root) noexcept { return end_node().set_left (new_root); }
     const_node_ptr get_root () const noexcept { return end_node().get_left(); }
@@ -823,9 +819,9 @@ private:
         if (new_node == leftmost_->get_left())
             leftmost_ = new_node;
 
-        assert (search_verifier ());
+        assert (search_verifier());
         assert (red_black_verifier());
-        assert (subtree_sizes_verifier ());
+        assert (subtree_sizes_verifier());
 
         return new_node;
     }
@@ -863,7 +859,7 @@ private:
         return (detail::red_black_verifier (get_root()) != 0);
     }
 
-    bool subtree_sizes_verifier () const noexcept
+    bool subtree_sizes_verifier () const
     {
         if (size() != std::distance (begin(), end()))
             return false;
