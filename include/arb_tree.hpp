@@ -13,6 +13,7 @@
 #include "tree_iterator.hpp"
 
 #ifdef DEBUG
+#include <iostream>
 #include "graphic_dump.hpp"
 #endif // DEBUG
 
@@ -701,7 +702,7 @@ public:
     #ifdef DEBUG
     
     // I see how this violates SRP but I don't know any better implementation
-    void graphic_dump (std::ostream &os) const
+    void graphic_dump (std::ostream &os = std::cout) const
     {
         if (empty())
             return;
