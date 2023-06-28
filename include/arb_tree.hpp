@@ -23,34 +23,44 @@ namespace yLab
 namespace detail
 {
 
+template<typename Node_T>
+Node_T *fixup_subroutine_1 (Node_T *new_node, Node_T *uncle, const Node_T *root) noexcept
+{
+    using color_type = typename Node_T::color_type;
+
+    assert (new_node && uncle);
+    
+    new_node = new_node->parent_unsafe();
+    new_node->color_ = color_type::black;
+
+    new_node = new_node->parent_unsafe();
+    new_node->color_ = (new_node == root) ? color_type::black : color_type::red;
+
+    uncle->color_ = color_type::black;
+
+    return new_node;
+};
+
+template<typename Node_T>
+Node_T *fixup_subroutine_2 (Node_T *new_node) noexcept
+{
+    using color_type = typename Node_T::color_type;
+
+    assert (new_node);
+    
+    new_node = new_node->parent_unsafe();
+    new_node->color_ = color_type::black;
+
+    new_node = new_node->parent_unsafe();
+    new_node->color_ = color_type::red;
+
+    return new_node;
+};
+
 template <typename Node_T>
 void rb_insert_fixup (const Node_T *root, Node_T *new_node) noexcept
 {       
     using color_type = typename Node_T::color_type;
-
-    auto fixup_subroutine_1 = [](Node_T *new_node, Node_T *uncle, const Node_T *root) noexcept
-    {
-        new_node = new_node->parent_unsafe();
-        new_node->color_ = color_type::black;
-
-        new_node = new_node->parent_unsafe();
-        new_node->color_ = (new_node == root) ? color_type::black : color_type::red;
-
-        uncle->color_ = color_type::black;
-
-        return new_node;
-    };
-
-    auto fixup_subroutine_2 = [](Node_T *new_node) noexcept
-    {        
-        new_node = new_node->parent_unsafe();
-        new_node->color_ = color_type::black;
-
-        new_node = new_node->parent_unsafe();
-        new_node->color_ = color_type::red;
-
-        return new_node;
-    };
     
     assert (root && new_node);
     
