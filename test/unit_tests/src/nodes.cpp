@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <nodes.hpp>
+#include "nodes.hpp"
 
 TEST (Nodes, Is_Left_Child)
 {
