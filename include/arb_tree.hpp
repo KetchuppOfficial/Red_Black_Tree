@@ -23,14 +23,6 @@ namespace yLab
 namespace detail
 {
 
-template<typename Node_T>
-bool is_red (Node_T *node) noexcept
-{
-    using color_type = typename Node_T::color_type;
-
-    return (node && node->color_ == color_type::red);
-}
-
 /*
  * Properties that:
  * 1. parent->parent_ exists
