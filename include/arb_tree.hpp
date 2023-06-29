@@ -140,14 +140,6 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node) noexcept
     }
 }
 
-template<typename Node_T>
-bool node_color_not_red (const Node_T *node) noexcept
-{
-    using color_type = typename Node_T::color_type;
-    
-    return (node == nullptr || node->color_ == color_type::black);
-}
-
 enum class Side { left, right };
 
 template<typename Node_T>
@@ -213,7 +205,7 @@ void w_has_red_child (Node_T *w, Node_T *w_child_1, Node_T *w_child_2) noexcept
     if (is_left_child (w_child_2))
         children_in_reverse = true;
     
-    if (node_color_not_red (w_child_2))
+    if (!is_red (w_child_2))
     {
         w_child_1->color_ = color_type::black;
         w->color_ = color_type::red;
@@ -261,7 +253,12 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 
             auto wl = w->get_left();
             auto wr = w->get_right();
-            if (node_color_not_red (wl) && node_color_not_red (wr))
+            if (is_red (wl) || is_red (wr))
+            {
+                w_has_red_child (w, wl, wr);
+                break;
+            }
+            else
             {
                 auto [x_, w_, to_break] = w_has_no_red_child (root, x, w);
                 if (to_break)
@@ -269,11 +266,6 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 
                 x = x_;
                 w = w_;
-            }
-            else
-            {
-                w_has_red_child (w, wl, wr);
-                break;
             }
         }
         else
@@ -287,7 +279,12 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 
             auto wl = w->get_left();
             auto wr = w->get_right();
-            if (node_color_not_red (wl) && node_color_not_red (wr))
+            if (is_red (wl) || is_red (wr))
+            {
+                w_has_red_child (w, wr, wl);
+                break;
+            }
+            else
             {
                 auto [x_, w_, to_break] = w_has_no_red_child (root, x, w);
                 if (to_break)
@@ -295,11 +292,6 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 
                 x = x_;
                 w = w_;
-            }
-            else
-            {
-                w_has_red_child (w, wr, wl);
-                break;
             }
         }
     }
