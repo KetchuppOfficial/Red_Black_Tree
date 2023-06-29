@@ -24,37 +24,51 @@ namespace detail
 {
 
 template<typename Node_T>
-Node_T *fixup_subroutine_1 (Node_T *new_node, Node_T *uncle, const Node_T *root) noexcept
+bool is_red (Node_T *node) noexcept
 {
     using color_type = typename Node_T::color_type;
 
-    assert (new_node && uncle);
-    
-    new_node = new_node->parent_unsafe();
-    new_node->color_ = color_type::black;
+    return (node && node->color_ == color_type::red);
+}
 
-    new_node = new_node->parent_unsafe();
-    new_node->color_ = (new_node == root) ? color_type::black : color_type::red;
+/*
+ * Properties that:
+ * 1. parent->parent_ exists
+ * 2. parent->parent_ isn't end_node
+ * are guaranteed by the algorithm (look rb_insert_fixup)
+ */
+template<typename Node_T>
+Node_T *recolor_parent_grandparent_uncle (Node_T *parent, Node_T *uncle, 
+                                          const Node_T *root) noexcept
+{
+    using color_type = typename Node_T::color_type;
+
+    assert (parent && uncle && parent->parent_unsafe());
+    
+    parent->color_ = color_type::black;
+
+    parent = parent->parent_unsafe();
+    if (parent != root)
+        parent->color_ = color_type::red;
 
     uncle->color_ = color_type::black;
 
-    return new_node;
+    return parent;
 };
 
 template<typename Node_T>
-Node_T *fixup_subroutine_2 (Node_T *new_node) noexcept
+Node_T *recolor_parent_grandparent (Node_T *parent) noexcept
 {
     using color_type = typename Node_T::color_type;
 
-    assert (new_node);
+    assert (parent && parent->parent_unsafe());
     
-    new_node = new_node->parent_unsafe();
-    new_node->color_ = color_type::black;
+    parent->color_ = color_type::black;
 
-    new_node = new_node->parent_unsafe();
-    new_node->color_ = color_type::red;
+    parent = parent->parent_unsafe();
+    parent->color_ = color_type::red;
 
-    return new_node;
+    return parent;
 };
 
 template <typename Node_T>
@@ -62,7 +76,7 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node) noexcept
 {       
     using color_type = typename Node_T::color_type;
     
-    assert (root && new_node);
+    assert (new_node);
     
     // Checks if "The root is black" property violated
     if (new_node == root)
@@ -71,53 +85,66 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node) noexcept
         return;
     }
 
-    // Further: (new_node != root_) ==> (root_->color_ == color_type::black)
+    // Further: (new_node != root) ==> (root->color_ == color_type::black)
+
+    auto parent = new_node->parent_unsafe();
 
     // Checks if "If a node is red, then both its children are black" property violated
-    while (new_node != root && new_node->parent_unsafe()->color_ == color_type::red)
+    while (new_node != root && parent->color_ == color_type::red)
     {
-        // First condition is important only for iterations 2, 3, ... but not for 1
-        // (new_node != root) ==> exists (new_node->parent_)
-        // (new_node->parent_->color_ == color_type::red) ==> (new_node->parent_ != root_)
+        /* Some notes:
+         * (1). First condition is important only for iterations 2, 3, ... but not for 1
+         * (2). (new_node != root) ==> (parent != end_node)
+         * (3). (parent->color_ == color_type::red) ==> (parent != root)
+         */
         
-        if (is_left_child (new_node->parent_unsafe()))
+        if (is_left_child (parent))
         {
-            // (new_node->parent_ != root_) ==> exists (new_node->parent_->parent_) != end_node
-            auto uncle = new_node->parent_unsafe()->parent_unsafe()->get_right();
+            // (3) ==> exists (parent->parent_) != end_node
+            // Further: we will refer to parent->parent_ as "grandparent"
+            auto uncle = parent->parent_unsafe()->get_right();
 
-            if (uncle && uncle->color_ == color_type::red)
-                new_node = fixup_subroutine_1 (new_node, uncle, root);
+            if (is_red (uncle))
+            {
+                /* (uncle->color_ == color_type::red) ==> grandparent->color_ == color_type::black
+                 * ==> grandparent may be root */
+                
+                new_node = recolor_parent_grandparent_uncle (parent, uncle, root);
+            }
             else
             {
                 if (!is_left_child (new_node))
                 {
-                    new_node = new_node->parent_unsafe();
-                    left_rotate (new_node);
+                    left_rotate (parent);
+                    parent = new_node;
                 }
 
-                right_rotate (fixup_subroutine_2 (new_node));
+                /* If grandparent will be colored red,
+                 * rotation will put parent (that is black) in place of root */
+                right_rotate (recolor_parent_grandparent (parent));
                 break;
             }
         }
         else
         {
-            // (new_node->parent_ != root_) ==> exitsts (new_node->parent_->parent_)
-            auto uncle = new_node->parent_unsafe()->get_parent()->get_left();
+            auto uncle = parent->get_parent()->get_left();
 
-            if (uncle && uncle->color_ == color_type::red)
-                new_node = fixup_subroutine_1 (new_node, uncle, root);
+            if (is_red (uncle))
+                new_node = recolor_parent_grandparent_uncle (parent, uncle, root);
             else
             {
                 if (is_left_child (new_node))
                 {
-                    new_node = new_node->parent_unsafe();
-                    right_rotate (new_node);
+                    right_rotate (parent);
+                    parent = new_node;
                 }
 
-                left_rotate (fixup_subroutine_2 (new_node));
+                left_rotate (recolor_parent_grandparent (parent));
                 break;
             }
         }
+
+        parent = new_node->parent_unsafe();
     }
 }
 
