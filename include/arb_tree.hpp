@@ -469,7 +469,7 @@ private:
         Root_Wrapper (const Root_Wrapper &rhs) = delete;
         Root_Wrapper &operator= (const Root_Wrapper &rhs) = delete;
 
-        Root_Wrapper (Root_Wrapper &&rhs) noexcept (std::is_nothrow_constructible_v<end_node_type>)
+        Root_Wrapper (Root_Wrapper &&rhs) noexcept (std::is_nothrow_move_constructible_v<end_node_type>)
                      : end_node_{std::move (rhs.end_node_)} {}
 
         Root_Wrapper &operator= (Root_Wrapper &&rhs) noexcept (std::is_nothrow_swappable_v<end_node_type>)
