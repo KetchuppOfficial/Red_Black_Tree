@@ -70,7 +70,7 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node) noexcept
     
     assert (new_node);
     
-    // Checks if "The root is black" property violated
+    // Checks if "The root is black" property is violated
     if (new_node == root)
     {
         new_node->color_ = color_type::black;
@@ -81,7 +81,7 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node) noexcept
 
     auto parent = new_node->parent_unsafe();
 
-    // Checks if "If a node is red, then both its children are black" property violated
+    // Checks if "If a node is red, then both its children are black" property is violated
     while (new_node != root && parent->color_ == color_type::red)
     {
         /* Some notes:
@@ -111,7 +111,7 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node) noexcept
                     parent = new_node;
                 }
 
-                /* If grandparent will be colored red,
+                /* If grandparent is root and colored red inside recolor_parent_grandparent,
                  * rotation will put parent (that is black) in place of root */
                 right_rotate (recolor_parent_grandparent (parent));
                 break;
