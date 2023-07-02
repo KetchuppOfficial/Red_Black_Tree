@@ -1,3 +1,25 @@
+/*
+ * This header contains implementation of two types of nodes and some basic functions on them.
+ *
+ * There are 2 types of nodes: End_Node and ARB_Node. The first one has only one pointer to the
+ * left child. ARB_Node is an ordinary node of a red-black tree. It also contains the number of
+ * nodes in its subtree to make range-based queries work in O(log(n)) time. ARB_Node is inherited
+ * from End_Node (CRTP is used).
+ * 
+ * End_Node is supposed to represent underlying node of end-iterator.
+ * 
+ * Parent of an ARB_Node can be got by means of get_parent() or parent_unsafe(). The first
+ * function returns a pointer to the base class (to End_Node part of a node). The second one
+ * performs downcast to a pointer to ARB_Node. It is so because in some cases we are certain 
+ * that a node's parent is of type ARB_Node and in other cases we are not.
+ * 
+ * Functions that perform rotation (left_rotate() and right_rotate()) also recalculate sizes
+ * of subtrees.
+ * 
+ * Successor and predecessor functions are designed the following way. Let root_ be the root 
+ * of a tree and end_node_ == root->parent_, then (successor (maximum (root_)) == end_node_).
+ */
+
 #ifndef INCLUDE_NODES_HPP
 #define INCLUDE_NODES_HPP
 
@@ -8,7 +30,6 @@
 namespace yLab
 {
 
-// Node representing the result of end()
 template<typename Node_T>
 class End_Node
 {
@@ -48,7 +69,7 @@ public:
     virtual ~End_Node() = default;
 };
 
-// ARB_Node - advanced red-black node
+// ARB_Node - augmented red-black node
 template<typename Key_T>
 class ARB_Node : public End_Node<ARB_Node<Key_T>>
 {

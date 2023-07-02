@@ -1,3 +1,15 @@
+/*
+ * This header contains implementation of augmented red-black tree (ARB_Tree)
+ *
+ * ARB_Tree is designed the following way. Its root's parent is an End_Node
+ * which left child is the root. This implies that every ARB_Node in a tree
+ * has a parent: another ARB_Node or the End_Node.
+ * 
+ * Defining DEBUG macro makes it possible to call graphic_dump() method that
+ * is designed for dumping a tree by means of graphviz for debugging or just
+ * for fun.
+ */
+
 #ifndef INCLUDE_RB_TREE_HPP
 #define INCLUDE_RB_TREE_HPP
 
@@ -491,11 +503,6 @@ void erase (Node_T *root, Node_T *z)
 
 } // namespace detail
 
-/*
- * Implementation details:
- * 1) root_->parent points to a non-null structure of type End_Node, which has a member
- *    left_ that points back to root_ (end_node)
- */
 template <typename Key_T, typename Compare = std::less<Key_T>>
 class ARB_Tree final
 {

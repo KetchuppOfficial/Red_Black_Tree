@@ -1,3 +1,10 @@
+/*
+ * This header contains implementation of graphic dump of ARB_Tree.
+ * 
+ * The content of a tree is dumped in dot language and then can be
+ * visualised by means of Graphviz. An example can be found in images/
+ */
+
 #ifndef INCLUDE_GRAPHIC_DUMP_HPP
 #define INCLUDE_GRAPHIC_DUMP_HPP
 

@@ -1,3 +1,7 @@
+/*
+ * This header contains implementation of iterator of ARB_Tree.
+ */
+
 #ifndef INCLUDE_TREE_ITERATOR
 #define INCLUDE_TREE_ITERATOR
 
