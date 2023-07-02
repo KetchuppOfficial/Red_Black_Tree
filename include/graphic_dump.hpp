@@ -17,6 +17,8 @@ void node_dump (std::ostream &os, const Node_T *node)
 {
     using color_type = typename Node_T::color_type;
 
+    assert (node);
+
     os << "    node_" << node << " [shape = record, ";
     if (node->color_ == color_type::black)
         os << "color = red, style = filled, fillcolor = black, fontcolor = white";
@@ -38,6 +40,8 @@ void node_dump (std::ostream &os, const Node_T *node)
 template<typename Node_T>
 void arrow_dump (std::ostream &os, const Node_T *node)
 {
+    assert (node);
+    
     os << "    node_" << node << " -> ";
     if (node->get_left())
         os << "node_" << node->get_left();
@@ -62,7 +66,8 @@ void graphic_dump (std::ostream &os, const Node_T *begin, const End_Node<Node_T>
     using node_ptr = const Node_T *;
     using end_node_ptr = const End_Node<Node_T> *;
     
-    assert (begin && end);
+    assert (begin);
+    assert (end);
 
     os << "digraph Tree\n"
           "{\n"
