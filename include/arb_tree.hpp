@@ -84,7 +84,8 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node) noexcept
     // Checks if "If a node is red, then both its children are black" property is violated
     while (new_node != root && parent->color_ == color_type::red)
     {
-        /* Some notes:
+        /* 
+         * Some notes:
          * (1). First condition is important only for iterations 2, 3, ... but not for 1
          * (2). (new_node != root) ==> (parent != end_node)
          * (3). (parent->color_ == color_type::red) ==> (parent != root)
@@ -169,7 +170,7 @@ std::pair<Node_T *, Node_T *> w_is_red (Node_T *root, Node_T *w, Side side)
     if (root == w_child)
         root = w;
 
-    return std::make_pair (root, new_w);
+    return std::pair{root, new_w};
 }
 
 template<typename Node_T>
@@ -298,28 +299,111 @@ void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
 }
 
 template<typename Node_T>
-void z_has_no_children (Node_T *x, Node_T *y, Node_T *z, typename Node_T::size_type z_size) noexcept
+std::pair<Node_T *, Node_T *> get_y_and_its_child (Node_T *z) noexcept
 {
+    assert (z);
+    
+    // If a node has a right child, that node's successor exists
+    Node_T *y;
+    if (z->get_left() && z->get_right())
+        y = static_cast<Node_T *>(successor (z));
+    else
+        y = z;
+
+    // (child_of_y == nullptr) <==> (y->left_ == nullptr) && (y->right_ == nullptr)
+    auto child_of_y = y->get_left() ? y->get_left() : y->get_right();
+
+    return std::pair{y, child_of_y};
+}
+
+template<typename Node_T>
+auto child_of_y_substitutes_y (Node_T *&root, Node_T *y, Node_T *child_of_y) noexcept
+-> std::pair<Node_T *, typename Node_T::size_type>
+{
+    assert (y);
+    assert (child_of_y == y->get_left() || child_of_y == y->get_right());
+    
+    Node_T *sibling_of_y = nullptr;
+    if (is_left_child (y))
+    {
+        /* 
+         * STATEMENT (*):
+         * Let y == successor (z), then:
+         * (1). z->left_ != nullptr
+         * (2). is_left_child (y) ==> (y != z->right_) ==> (y->parent_ != z)
+         * So next line doesn't change z->left_ and still isn't equal to nullptr
+         * 
+         * P.s: (2) is also obviously true if y == z
+         */
+        y->get_parent()->set_left (child_of_y);
+        
+        if (y != root)
+        {
+            // (y != root) ==> exists y->parent_ != end_node
+            sibling_of_y = y->parent_unsafe()->get_right();
+        }
+        else
+            root = child_of_y;
+    }
+    else
+    {
+        // (y == y->parent_->right_) ==> exists y->parent != end_node
+        auto yp = y->parent_unsafe();
+
+        // STATEMENT (**): if (yp == z), then next line may set z->right_ to nullptr
+        yp->set_right (child_of_y);
+        sibling_of_y = yp->get_left();
+    }
+
+    auto decrement = y->subtree_size_;
+    if (child_of_y)
+    {
+        child_of_y->set_parent (y->get_parent());
+        decrement -= child_of_y->subtree_size_;
+    }
+
+    y->get_parent()->subtree_size_ -= decrement;
+
+    return std::pair{sibling_of_y, decrement};
+}
+
+// Order of y and z is significant. This function mustn't be called with arbitrary pointers
+template<typename Node_T>
+void decrement_subtee_hights_from_y_to_z (Node_T *y, Node_T *z,
+                                          typename Node_T::size_type decrement) noexcept
+{
+    assert (y);
+
+    // y->parent_->subtree_hight_ has already been changed in child_of_y_substitutes_y()
+    
     if (auto yp = y->parent_unsafe(); yp != z)
     {
-        auto dec = x ? y->subtree_size_ - x->subtree_size_ : y->subtree_size_;
         for (auto ypp = yp->parent_unsafe(); ypp != z; ypp = ypp->parent_unsafe())
-            ypp->subtree_size_ -= dec;
+            ypp->subtree_size_ -= decrement;
     }
+}
+
+// Order of y and z is significant. This function mustn't be called with arbitrary pointers
+template<typename Node_T>
+void y_substitutes_z (Node_T *y, Node_T *z, typename Node_T::size_type z_size) noexcept
+{
+    assert (y && z);
     
     auto zl = z->get_left();
     auto zr = z->get_right();
 
-    // We are sure that zl != nullptr because of (*)
-    zl->set_parent (y);
-    if (zr)
-        zr->set_parent (y);
-
     y->set_left (zl);
     y->set_right (zr);
 
-    y->subtree_size_ = (zl ? zl->subtree_size_ : 0) +
-                       (zr ? zr->subtree_size_ : 0) + 1;
+    // We are sure that zl != nullptr because of STATEMENT (*)
+    zl->set_parent (y);
+    y->subtree_size_ = zl->subtree_size_ + 1;
+
+    if (zr) // We are NOT sure that zr != nullptr because of STATEMENT (**)
+    {
+        zr->set_parent (y);
+        y->subtree_size_ += zr->subtree_size_;
+    }
 
     y->color_ = z->color_;
 
@@ -339,88 +423,63 @@ void z_has_no_children (Node_T *x, Node_T *y, Node_T *z, typename Node_T::size_t
     y->set_parent (z->get_parent());
 }
 
+template<typename Node_T, typename End_Node_T>
+void decrement_subtree_hights_upper_z (Node_T *z, End_Node_T *end_node) noexcept
+{
+    assert (z && end_node);
+    assert (z->get_parent() != end_node);
+
+    /* 
+     * if (y == z), then z->parent_->subtree_hight_ has already been changed
+     * in child_of_y_substitutes_y()
+     *
+     * if (y != z), then z->parent_->subtree_hight_ has already been changed
+     * in y_substitutes_z()
+     */
+    
+    auto zpp = z->parent_unsafe()->get_parent();
+    while (zpp != end_node)
+    {
+        zpp->subtree_size_--;
+        zpp = static_cast<Node_T *>(zpp)->get_parent();
+    }
+    end_node->subtree_size_--;
+}
+
 template<typename Node_T>
 void erase (Node_T *root, Node_T *z)
 {    
     using color_type = typename Node_T::color_type;
+    using size_type = typename Node_T::size_type;
     
     assert (root && z);
     
-    // if (z == maximum (root)) then z->get_right() == nullptr ==> y = z
-    // else exists successor (z) != end_node
-    Node_T *y;
-    if (z->get_left() && z->get_right())
-        y = static_cast<Node_T *>(successor (z));
-    else
-        y = z;
+    auto [y, child_of_y] = get_y_and_its_child (z);
 
-    // (x == nullptr) <==> (y->get_left() == nullptr) && (y->get_right() == nullptr)
-    auto x = y->get_left() ? y->get_left() : y->get_right();
-    Node_T *w = nullptr;
-
-    // root may change its value further, so we save it
+    // child_of_y_substitutes_y() may change root, so we save a pointer to end_node
+    // child_of_y_substitutes_y() may change z->subtree_size_, so we save it
     auto end_node = root->get_parent();
-
-    if (is_left_child (y))
-    {
-        // STATEMENT (*)
-        // Let y == successor (z), then:
-        // is_left_child (y) ==> (y != z->get_right()) ==> (y->parent_ != z)
-        // Even if (x == nullptr), then (z->get_left() != nullptr)
-        y->get_parent()->set_left (x);
-        
-        if (y != root)
-        {
-            // y != root ==> exists y->parent_ != end_node
-            w = y->parent_unsafe()->get_right();
-        }   
-        else
-            root = x;
-    }
-    else
-    {
-        // y is its parent's right child ==> exists y->parent != end_node
-        auto yp = y->parent_unsafe();
-
-        // if (yp == z) then following line may set z->get_right() to nullptr
-        yp->set_right (x);
-        w = yp->get_left();
-    }
-
-    // Next if-statement may change z->subtree_size_, so we save it
     auto z_size = z->subtree_size_;
 
-    if (auto yp = y->get_parent(); x != nullptr)
-    {
-        x->set_parent (yp);
-        yp->subtree_size_ -= (y->subtree_size_ - x->subtree_size_);
-    }
-    else
-        yp->subtree_size_ -= y->subtree_size_;
+    auto [sibling_of_y, decrement] = child_of_y_substitutes_y (root, y, child_of_y);
 
+    // y_substitutes_z() changes y->color_, so we save it
     auto y_orig_color = y->color_;
 
     if (y != z)
     {
-        z_has_no_children (x, y, z, z_size);
+        decrement_subtee_hights_from_y_to_z (y, z, decrement);
+        y_substitutes_z (y, z, z_size);
         
         if (z == root)
             root = y;
     }
 
     if (z->get_parent() != end_node)
-    {
-        auto zp = z->parent_unsafe();
-        for (auto node = zp->get_parent(); node != end_node;
-            node = static_cast<Node_T *>(node)->get_parent())
-        {
-            node->subtree_size_--;
-        }
-        end_node->subtree_size_--;
-    }
+        decrement_subtree_hights_upper_z (z, end_node);
 
     if (y_orig_color == color_type::black && root)
-        rb_erase_fixup (root, x, w);
+        rb_erase_fixup (root, child_of_y, sibling_of_y);
 }
 
 } // namespace detail
@@ -608,10 +667,10 @@ public:
             auto actual_parent = parent ? parent : std::addressof (end_node());
             auto new_node = insert_hint_unique (key, actual_parent, side);
 
-            return std::make_pair (iterator{new_node}, true);
+            return std::pair{iterator{new_node}, true};
         }
         else
-            return std::make_pair (iterator{node}, false);
+            return std::pair{iterator{node}, false};
     }
 
     template<std::input_iterator it>
