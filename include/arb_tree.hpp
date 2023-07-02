@@ -154,6 +154,8 @@ template<typename Node_T>
 void y_has_red_sibling (Node_T *&root, Node_T *&sibling_of_y, Side side)
 {
     using color_type = typename Node_T::color_type;
+
+    assert (sibling_of_y);
     
     auto parent = sibling_of_y->parent_unsafe();
 
