@@ -139,7 +139,8 @@ bool is_red (Node_T *node) noexcept
 template<typename Node_T>
 bool is_left_child (const Node_T *node) noexcept
 {
-    assert (node && node->get_parent());
+    assert (node);
+    assert (node->get_parent());
     
     return node == node->get_parent()->get_left();
 }
@@ -200,7 +201,8 @@ auto predecessor (End_Node_Ptr node) noexcept -> decltype (node->get_left())
 template<typename Node_T>
 void left_rotate (Node_T *x) noexcept
 {
-    assert (x && x->get_right());
+    assert (x);
+    assert (x->get_right());
 
     auto y = x->get_right();
 
@@ -225,7 +227,8 @@ void left_rotate (Node_T *x) noexcept
 template <typename Node_T>
 void right_rotate (Node_T *x) noexcept
 {
-    assert (x && x->get_left());
+    assert (x);
+    assert (x->get_left());
 
     auto y = x->get_left();
 
@@ -247,10 +250,12 @@ void right_rotate (Node_T *x) noexcept
     y->recalculate_subtree_size();
 }
 
-template<typename Node_Ptr>
-Node_Ptr kth_smallest (Node_Ptr root, std::size_t k) noexcept
+template<typename Node_T>
+Node_T *kth_smallest (Node_T *root, std::size_t k) noexcept
 {
-    using size_type = std::remove_pointer_t<Node_Ptr>::size_type;
+    using size_type = typename Node_T::size_type;
+
+    assert (root);
     
     if (k > root->subtree_size_)
         return nullptr;
@@ -275,19 +280,21 @@ Node_Ptr kth_smallest (Node_Ptr root, std::size_t k) noexcept
     return root;
 }
 
-template<typename End_Node_Ptr>
-auto n_less_than (End_Node_Ptr root, End_Node_Ptr node) noexcept ->
-typename std::remove_pointer_t<End_Node_Ptr>::size_type
+template<typename End_Node_T>
+auto n_less_than (End_Node_T *root, End_Node_T *node) noexcept ->
+typename End_Node_T::size_type
 {
-    using size_type = std::remove_pointer_t<End_Node_Ptr>::size_type;
-    using node_type = decltype (node->get_left());
+    using size_type = typename End_Node_T::size_type;
+    using node_ptr = decltype (node->get_left());
+
+    assert (node);
     
     auto left = node->get_left();
     auto rank = left ? left->subtree_size_ : size_type{0};
 
     while (node != root)
     {
-        auto node_ = static_cast<node_type>(node);
+        auto node_ = static_cast<node_ptr>(node);
         auto np = node_->get_parent();
         auto npl = np->get_left();
         
