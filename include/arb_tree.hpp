@@ -760,7 +760,8 @@ public:
 
     bool contains (const key_type &key) const { return find (key) != end(); }
 
-    const_iterator kth_smallest (size_type k) const
+    // k-th smallest element
+    const_iterator operator[] (size_type k) const
     {
         if (empty() || k == 0)
             return end();
@@ -769,9 +770,9 @@ public:
         return node ? const_iterator{node} : end();
     }
 
-    iterator kth_smallest (size_type k)
+    iterator operator[] (size_type k)
     {
-        return static_cast<const ARB_Tree &>(*this).kth_smallest (k);
+        return static_cast<const ARB_Tree &>(*this).operator[] (k);
     }
 
     size_type n_less_than (const key_type &key) const

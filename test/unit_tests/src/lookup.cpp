@@ -61,13 +61,13 @@ TEST (Lookup, Kth_Smallest)
     yLab::ARB_Tree tree = {0, 2, 4, 6, 8, 10, 12};
 
     for (auto k = 1; k != tree.size() + 1; ++k)
-        EXPECT_EQ (tree.kth_smallest (k), std::next (tree.begin(), k - 1));
+        EXPECT_EQ (tree[k], std::next (tree.begin(), k - 1));
 
-    EXPECT_EQ (tree.kth_smallest (0), tree.end());
-    EXPECT_EQ (tree.kth_smallest (tree.size() + 1), tree.end());
+    EXPECT_EQ (tree[0], tree.end());
+    EXPECT_EQ (tree[tree.size() + 1], tree.end());
 
     yLab::ARB_Tree<int> empty_tree;
-    EXPECT_EQ (empty_tree.kth_smallest (1), empty_tree.end());
+    EXPECT_EQ (empty_tree[1], empty_tree.end());
 }
 
 TEST (Lookup, N_Less_Than)

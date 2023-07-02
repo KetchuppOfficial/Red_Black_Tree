@@ -30,7 +30,7 @@ int main ()
                 break;
 
             case end_to_end::Queries::kth_smallest:
-                std::cout << *tree.kth_smallest (key_) << " ";
+                std::cout << *tree[key_] << " ";
                 break;
 
             case end_to_end::Queries::n_less_than_given:
