@@ -23,6 +23,8 @@ namespace yLab
 namespace detail
 {
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INSERTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 /*
  * Properties that:
  * 1. parent->parent_ exists
@@ -35,7 +37,9 @@ Node_T *recolor_parent_grandparent_uncle (Node_T *parent, Node_T *uncle,
 {
     using color_type = typename Node_T::color_type;
 
-    assert (parent && uncle && parent->parent_unsafe());
+    assert (parent);
+    assert (uncle);
+    assert (parent->parent_unsafe());
     
     parent->color_ = color_type::black;
 
@@ -53,7 +57,8 @@ Node_T *recolor_parent_grandparent (Node_T *parent) noexcept
 {
     using color_type = typename Node_T::color_type;
 
-    assert (parent && parent->parent_unsafe());
+    assert (parent);
+    assert (parent->parent_unsafe());
     
     parent->color_ = color_type::black;
 
@@ -141,162 +146,159 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node) noexcept
     }
 }
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ERASURE FIXUP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 enum class Side { left, right };
 
 template<typename Node_T>
-std::pair<Node_T *, Node_T *> w_is_red (Node_T *root, Node_T *w, Side side)
+void y_has_red_sibling (Node_T *&root, Node_T *&sibling_of_y, Side side)
 {
     using color_type = typename Node_T::color_type;
     
-    auto wp = w->parent_unsafe();
+    auto parent = sibling_of_y->parent_unsafe();
 
-    w->color_ = color_type::black;
-    wp->color_ = color_type::red;
+    sibling_of_y->color_ = color_type::black;
+    parent->color_ = color_type::red;
 
-    Node_T *w_child, *new_w;
+    Node_T *nephew_of_y, *new_sibling_of_y;
     if (side == Side::left)
     {
-        left_rotate (wp);
-        w_child = w->get_left();
-        new_w = w_child->get_right();
+        left_rotate (parent);
+        nephew_of_y = sibling_of_y->get_left();
+        new_sibling_of_y = nephew_of_y->get_right();
     }
     else
     {
-        right_rotate (wp);
-        w_child = w->get_right();
-        new_w = w_child->get_left();
+        right_rotate (parent);
+        nephew_of_y = sibling_of_y->get_right();
+        new_sibling_of_y = nephew_of_y->get_left();
     }
 
-    if (root == w_child)
-        root = w;
+    if (root == nephew_of_y)
+        root = sibling_of_y;
 
-    return std::pair{root, new_w};
+    sibling_of_y = new_sibling_of_y;
 }
 
 template<typename Node_T>
-std::tuple<Node_T *, Node_T *, bool> w_has_no_red_child (const Node_T *root, Node_T *x, Node_T *w)
+void y_has_red_nephew (Node_T *sibling_of_y, Node_T *nephew_1, Node_T *nephew_2) noexcept
 {
     using color_type = typename Node_T::color_type;
-    
-    auto to_break = false;
-    
-    w->color_ = color_type::red;
-    x = w->parent_unsafe();
 
-    if (x == root || x->color_ == color_type::red)
-    {
-        x->color_ = color_type::black;
-        to_break = true;
-    }
-
-    if (is_left_child (x))
-        w = x->parent_unsafe()->get_right();
-    else
-        w = x->get_parent()->get_left();
-
-    return std::make_tuple (x, w, to_break);
-}
-
-template<typename Node_T>
-void w_has_red_child (Node_T *w, Node_T *w_child_1, Node_T *w_child_2) noexcept
-{
-    using color_type = typename Node_T::color_type;
+    assert (sibling_of_y);
+    assert (nephew_2);
+    assert (nephew_1 != nephew_2);
+    assert (nephew_1 == sibling_of_y->get_left() || nephew_1 == sibling_of_y->get_right());
+    assert (nephew_2 == sibling_of_y->get_left() || nephew_2 == sibling_of_y->get_right());
     
     bool children_in_reverse = false;
-    if (is_left_child (w_child_2))
+    if (is_left_child (nephew_2))
         children_in_reverse = true;
     
-    if (!is_red (w_child_2))
+    if (!is_red (nephew_2))
     {
-        w_child_1->color_ = color_type::black;
-        w->color_ = color_type::red;
+        nephew_1->color_ = color_type::black;
+        sibling_of_y->color_ = color_type::red;
 
         if (children_in_reverse)
-            left_rotate (w);
+            left_rotate (sibling_of_y);
         else
-            right_rotate (w);
+            right_rotate (sibling_of_y);
         
-        w = w->parent_unsafe();
+        sibling_of_y = sibling_of_y->parent_unsafe();
     }
 
-    auto wp = w->parent_unsafe();
-    w->color_ = wp->color_;
-    wp->color_ = color_type::black;
-    w_child_2->color_ = color_type::black;
+    auto parent = sibling_of_y->parent_unsafe();
+    sibling_of_y->color_ = parent->color_;
+    parent->color_ = color_type::black;
+    nephew_2->color_ = color_type::black;
 
     if (children_in_reverse)
-        right_rotate (wp);
+        right_rotate (parent);
     else
-        left_rotate (wp);
+        left_rotate (parent);
 }
 
 template<typename Node_T>
-void rb_erase_fixup (Node_T *root, Node_T *x, Node_T *w)
+bool y_has_no_red_nephew (const Node_T *root, Node_T *&child_of_y, Node_T *&sibling_of_y)
 {
     using color_type = typename Node_T::color_type;
-    
-    if (x)
+
+    assert (root);
+    assert (sibling_of_y);
+        
+    sibling_of_y->color_ = color_type::red;
+    child_of_y = sibling_of_y->parent_unsafe();
+
+    auto to_continue = true;
+    if (child_of_y == root || child_of_y->color_ == color_type::red)
     {
-        x->color_ = color_type::black;
+        child_of_y->color_ = color_type::black;
+        to_continue = false;
+    }
+
+    if (is_left_child (child_of_y))
+        sibling_of_y = child_of_y->parent_unsafe()->get_right();
+    else
+        sibling_of_y = child_of_y->get_parent()->get_left();
+
+    return to_continue;
+}
+
+template<typename Node_T>
+void rb_erase_fixup (Node_T *root, Node_T *child_of_y, Node_T *sibling_of_y)
+{
+    using color_type = typename Node_T::color_type;
+
+    assert (root);
+    assert (sibling_of_y);
+
+    if (child_of_y)
+    {
+        child_of_y->color_ = color_type::black;
         return;
     }
 
     while (true)
     {
-        if (!is_left_child (w))
+        if (is_left_child (sibling_of_y))
         {
-            if (w->color_ == color_type::red)
-            {
-                auto [root_, w_] = w_is_red (root, w, Side::left);
-                root = root_;
-                w = w_;
-            }
+            if (sibling_of_y->color_ == color_type::red)
+                y_has_red_sibling (root, sibling_of_y, Side::right);
 
-            auto wl = w->get_left();
-            auto wr = w->get_right();
-            if (is_red (wl) || is_red (wr))
-            {
-                w_has_red_child (w, wl, wr);
-                break;
-            }
+            auto y_l_nephew = sibling_of_y->get_left();
+            auto y_r_nephew = sibling_of_y->get_right();
+            if (is_red (y_l_nephew) || is_red (y_r_nephew))
+                y_has_red_nephew (sibling_of_y, y_r_nephew, y_l_nephew);
             else
             {
-                auto [x_, w_, to_break] = w_has_no_red_child (root, x, w);
-                if (to_break)
-                    break;
-
-                x = x_;
-                w = w_;
+                auto to_continue = y_has_no_red_nephew (root, child_of_y, sibling_of_y);
+                if (to_continue)
+                    continue;
             }
         }
         else
         {
-            if (w->color_ == color_type::red)
-            {
-                auto [root_, w_] = w_is_red (root, w, Side::right);
-                root = root_;
-                w = w_;
-            }
+            if (sibling_of_y->color_ == color_type::red)
+                y_has_red_sibling (root, sibling_of_y, Side::left);
 
-            auto wl = w->get_left();
-            auto wr = w->get_right();
-            if (is_red (wl) || is_red (wr))
-            {
-                w_has_red_child (w, wr, wl);
-                break;
-            }
+            auto y_l_nephew = sibling_of_y->get_left();
+            auto y_r_nephew = sibling_of_y->get_right();
+            if (is_red (y_l_nephew) || is_red (y_r_nephew))
+                y_has_red_nephew (sibling_of_y, y_l_nephew, y_r_nephew);
             else
             {
-                auto [x_, w_, to_break] = w_has_no_red_child (root, x, w);
-                if (to_break)
-                    break;
-
-                x = x_;
-                w = w_;
+                auto to_continue = y_has_no_red_nephew (root, child_of_y, sibling_of_y);
+                if (to_continue)
+                    continue;
             }
         }
+
+        break;
     }
 }
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ERASURE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 template<typename Node_T>
 std::pair<Node_T *, Node_T *> get_y_and_its_child (Node_T *z) noexcept
@@ -387,7 +389,8 @@ void decrement_subtee_hights_from_y_to_z (Node_T *y, Node_T *z,
 template<typename Node_T>
 void y_substitutes_z (Node_T *y, Node_T *z, typename Node_T::size_type z_size) noexcept
 {
-    assert (y && z);
+    assert (y);
+    assert (z);
     
     auto zl = z->get_left();
     auto zr = z->get_right();
@@ -426,7 +429,8 @@ void y_substitutes_z (Node_T *y, Node_T *z, typename Node_T::size_type z_size) n
 template<typename Node_T, typename End_Node_T>
 void decrement_subtree_hights_upper_z (Node_T *z, End_Node_T *end_node) noexcept
 {
-    assert (z && end_node);
+    assert (z);
+    assert (end_node);
     assert (z->get_parent() != end_node);
 
     /* 
@@ -452,7 +456,8 @@ void erase (Node_T *root, Node_T *z)
     using color_type = typename Node_T::color_type;
     using size_type = typename Node_T::size_type;
     
-    assert (root && z);
+    assert (root);
+    assert (z);
     
     auto [y, child_of_y] = get_y_and_its_child (z);
 
@@ -464,7 +469,7 @@ void erase (Node_T *root, Node_T *z)
     auto [sibling_of_y, decrement] = child_of_y_substitutes_y (root, y, child_of_y);
 
     // y_substitutes_z() changes y->color_, so we save it
-    auto y_orig_color = y->color_;
+    auto y_original_color = y->color_;
 
     if (y != z)
     {
@@ -478,7 +483,7 @@ void erase (Node_T *root, Node_T *z)
     if (z->get_parent() != end_node)
         decrement_subtree_hights_upper_z (z, end_node);
 
-    if (y_orig_color == color_type::black && root)
+    if (y_original_color == color_type::black && root)
         rb_erase_fixup (root, child_of_y, sibling_of_y);
 }
 
@@ -776,7 +781,7 @@ public:
         if (it == end())
             return size();
         else
-            return detail::n_less_than<const_end_node_ptr> (get_root(), it.node_);
+            return detail::n_less_than<const end_node_type> (get_root(), it.node_);
     }
 
     #ifdef DEBUG
