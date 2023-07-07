@@ -107,7 +107,7 @@ public:
 
     ARB_Node (ARB_Node &&rhs)
             : base_{std::move (rhs)},
-              right_{std::exchange (rhs.right, nullptr)},
+              right_{std::exchange (rhs.right_, nullptr)},
               parent_{std::exchange (rhs.parent_, nullptr)},
               color_{std::move (rhs.color_)},
               key_{std::move (rhs.key_)} {}
