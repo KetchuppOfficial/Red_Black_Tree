@@ -125,7 +125,7 @@ TEST (Nodes, Basic_Queries)
  *    / \         / \
  *   b   c       a   b
  */
-TEST (Details, Left_Rotate_Plus)
+TEST (Nodes, Left_Rotate)
 {
     using node_type = yLab::ARB_Node<int>;
     using color_type = typename node_type::color_type;
@@ -179,7 +179,7 @@ TEST (Details, Left_Rotate_Plus)
  *    / \         / \
  *   b   c       a   b
  */
-TEST (Details, Right_Rotate_Plus)
+TEST (Nodes, Right_Rotate)
 {
     using node_type = yLab::ARB_Node<int>;
     using color_type = typename node_type::color_type;
