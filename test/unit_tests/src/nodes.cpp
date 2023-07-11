@@ -37,7 +37,7 @@ TEST (Nodes, Is_Left_Child)
 TEST (Nodes, Basic_Queries)
 {
     using node_type = yLab::ARB_Node<int>;
-    using color_type = node_type::color_type;
+    using color_type = typename node_type::color_type;
 
     yLab::End_Node<node_type> end_node;
     node_type top{4, color_type::black};
