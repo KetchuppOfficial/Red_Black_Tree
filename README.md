@@ -1,4 +1,4 @@
-# HWT - balanced tree
+# HWT. Level 1: balanced tree
 
 This project is a task on course "Uses and applications of C++ language" by [K.I.Vladimirov](https://github.com/tilir). The task was to implement a class representing balanced tree that finds k-th smallest element (K-query) and the number of elements smaller than the given one (N-query) in O(log n) time.
 
