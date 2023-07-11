@@ -805,10 +805,17 @@ private:
 
     const_node_ptr find (const_node_ptr node, const key_type &key) const
     {
-        while (node && (comp_(key, node->key()) || comp_(node->key(), key)))
-            node = comp_(key, node->key()) ? node->get_left() : node->get_right();
+        while (node)
+        {
+            if (comp_(key, node->key()))
+                node = node->get_left();
+            else if (comp_(node->key(), key))
+                node = node->get_right();
+            else
+                return node;
+        }
 
-        return node;
+        return nullptr;
     }
 
     enum class Side { left, right };
@@ -888,7 +895,7 @@ private:
         if (side == Side::left)
             parent->set_left (new_node);
         else
-            new_node->parent_unsafe()->set_right (new_node);
+            static_cast<node_ptr>(parent)->set_right (new_node);
 
         for (auto node = parent; node != std::addressof (end_node());
             node = static_cast<node_ptr>(node)->get_parent())
