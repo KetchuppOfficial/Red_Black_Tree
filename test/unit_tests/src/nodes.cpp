@@ -117,14 +117,6 @@ TEST (Nodes, Basic_Queries)
     EXPECT_EQ (yLab::detail::predecessor (&rr_node), &r_node);
 }
 
-/*
- *   |               |
- *   x               y
- *  / \             / \
- * a   y    -->    x   c
- *    / \         / \
- *   b   c       a   b
- */
 TEST (Nodes, Left_Rotate)
 {
     using node_type = yLab::ARB_Node<int>;
@@ -171,14 +163,6 @@ TEST (Nodes, Left_Rotate)
     EXPECT_EQ (y.subtree_size_, x.subtree_size_ + c_size + 1);
 }
 
-/*
- *   |               |
- *   y               x
- *  / \             / \
- * a   x    <--    y   c
- *    / \         / \
- *   b   c       a   b
- */
 TEST (Nodes, Right_Rotate)
 {
     using node_type = yLab::ARB_Node<int>;
