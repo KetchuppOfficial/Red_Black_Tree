@@ -135,30 +135,22 @@ public:
     node_ptr parent_unsafe () noexcept { return static_cast<node_ptr>(parent_); }
 
     const key_type &key () const { return key_; }
-
-    void recalculate_subtree_size () noexcept
-    {
-        auto left = this->get_left();
-        auto left_size = left ? left->subtree_size_ : size_type{0};
-        auto right_size = right_ ? right_->subtree_size_ : size_type{0};
-
-        this->subtree_size_ = 1 + right_size + left_size;
-    }
+    static size_type size (const_node_ptr node) noexcept { return node ? node->subtree_size_ : 0; }
 };
 
 namespace detail
 {
 
-template<typename Node_T>
-bool is_red (Node_T *node) noexcept
+template<typename Node_Ptr>
+bool is_red (Node_Ptr node) noexcept
 {
-    using color_type = typename Node_T::color_type;
+    using color_type = typename std::remove_pointer_t<Node_Ptr>::color_type;
 
     return (node && node->color_ == color_type::red);
 }
 
-template<typename Node_T>
-bool is_left_child (const Node_T *node) noexcept
+template<typename Node_Ptr>
+bool is_left_child (Node_Ptr node) noexcept
 {
     assert (node);
     assert (node->get_parent());
@@ -219,18 +211,28 @@ auto predecessor (End_Node_Ptr node) noexcept -> decltype (node->get_left())
     return node_->parent_unsafe();
 }
 
-template<typename Node_T>
-void left_rotate (Node_T *x) noexcept
+/*
+ *   |               |
+ *   x               y
+ *  / \             / \
+ * a   y    -->    x   c
+ *    / \         / \
+ *   b   c       a   b
+ */
+template<typename Node_Ptr>
+void left_rotate (Node_Ptr x) noexcept
 {
+    using node_type = std::remove_pointer_t<Node_Ptr>;
+    
     assert (x);
     assert (x->get_right());
 
     auto y = x->get_right();
 
-    auto yl = y->get_left();
-    x->set_right (yl);
-    if (yl)
-        yl->set_parent (x);
+    auto b = y->get_left();
+    x->set_right (b);
+    if (b)
+        b->set_parent (x);
 
     y->set_parent (x->get_parent());
     if (is_left_child (x))
@@ -241,22 +243,32 @@ void left_rotate (Node_T *x) noexcept
     y->set_left (x);
     x->set_parent (y);
 
-    x->recalculate_subtree_size();
-    y->recalculate_subtree_size();
+    x->subtree_size_ = 1 + node_type::size (x->get_left()) + node_type::size (b);
+    y->subtree_size_ = 1 + x->subtree_size_ + node_type::size (y->get_right());
 }
 
-template <typename Node_T>
-void right_rotate (Node_T *x) noexcept
+/*
+ *   |               |
+ *   y               x
+ *  / \             / \
+ * a   x    <--    y   c
+ *    / \         / \
+ *   b   c       a   b
+ */
+template <typename Node_Ptr>
+void right_rotate (Node_Ptr x) noexcept
 {
+    using node_type = std::remove_pointer_t<Node_Ptr>;
+    
     assert (x);
     assert (x->get_left());
 
     auto y = x->get_left();
 
-    auto yr = y->get_right();
-    x->set_left (yr);
-    if (yr)
-        yr->set_parent (x);
+    auto b = y->get_right();
+    x->set_left (b);
+    if (b)
+        b->set_parent (x);
 
     y->set_parent (x->get_parent());
     if (is_left_child (x))
@@ -267,22 +279,22 @@ void right_rotate (Node_T *x) noexcept
     y->set_right (x);
     x->set_parent (y);
 
-    x->recalculate_subtree_size();
-    y->recalculate_subtree_size();
+    x->subtree_size_ = 1 + node_type::size (x->get_right()) + node_type::size (b);
+    y->subtree_size_ = 1 + x->subtree_size_ + node_type::size (y->get_left());
 }
 
-template<typename Node_T>
-Node_T *kth_smallest (Node_T *root, std::size_t k) noexcept
+template<typename Node_Ptr>
+Node_Ptr kth_smallest (Node_Ptr root, std::size_t k) noexcept
 {
-    using size_type = typename Node_T::size_type;
-
+    using node_type = std::remove_pointer_t<Node_Ptr>;
+    
     assert (root);
     
     if (k > root->subtree_size_)
         return nullptr;
 
     auto left = root->get_left();
-    auto left_size = left ? left->subtree_size_ : size_type{0};
+    auto left_size = node_type::size (left);
     
     while (k != left_size + 1)
     {    
@@ -295,23 +307,22 @@ Node_T *kth_smallest (Node_T *root, std::size_t k) noexcept
         }
 
         left = root->get_left();
-        left_size = left ? left->subtree_size_ : size_type{0};
+        left_size = node_type::size (left);
     }
 
     return root;
 }
 
-template<typename End_Node_T>
-auto n_less_than (End_Node_T *root, End_Node_T *node) noexcept ->
-typename End_Node_T::size_type
+template<typename End_Node_Ptr>
+auto n_less_than (End_Node_Ptr root, End_Node_Ptr node) noexcept ->
+typename std::remove_pointer_t<End_Node_Ptr>::size_type
 {
-    using size_type = typename End_Node_T::size_type;
     using node_ptr = decltype (node->get_left());
+    using node_type = std::remove_pointer_t<node_ptr>;
 
     assert (node);
     
-    auto left = node->get_left();
-    auto rank = left ? left->subtree_size_ : size_type{0};
+    auto rank = node_type::size (node->get_left());
 
     while (node != root)
     {
@@ -320,7 +331,7 @@ typename End_Node_T::size_type
         auto npl = np->get_left();
         
         if (!is_left_child (node_))
-            rank += npl ? npl->subtree_size_ + 1 : 1;
+            rank += 1 + node_type::size (npl);
 
         node = node_->get_parent();
     }
@@ -328,10 +339,10 @@ typename End_Node_T::size_type
     return rank;
 }
 
-template<typename Node_T>
-std::size_t red_black_verifier (const Node_T *root) noexcept
+template<typename Node_Ptr>
+std::size_t red_black_verifier (Node_Ptr root) noexcept
 {
-    using color_type = typename Node_T::color_type;
+    using color_type = typename std::remove_pointer_t<Node_Ptr>::color_type;
     
     if (root == nullptr)
         return 1;
@@ -343,11 +354,10 @@ std::size_t red_black_verifier (const Node_T *root) noexcept
         (right && right->get_parent() != root))
         return 0;
 
-    auto is_root_red = root->color_ == color_type::red; 
+    auto is_root_red = (root->color_ == color_type::red);
     if (is_root_red)
     {
-        if ((left  && left->color_  == color_type::red) ||
-            (right && right->color_ == color_type::red))
+        if (is_red (left) || is_red (right))
             return 0;
     }
 
