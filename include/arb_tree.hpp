@@ -605,17 +605,14 @@ public:
                leftmost_{std::exchange (rhs.leftmost_, rhs.top_node_.get_end_node())},
                comp_{std::move (rhs.comp_)}
     {
-        if (top_node_.get_root())
-                top_node_.get_root()->set_parent (top_node_.get_end_node());
+        set_leftmost_or_parent_of_root();
     }
 
     ARB_Tree &operator= (ARB_Tree &&rhs) noexcept (std::is_nothrow_swappable_v<key_compare> &&
                                                    std::is_nothrow_swappable_v<end_node_type>)
     {
         swap (rhs);
-
-        if (top_node_.get_root())
-                top_node_.get_root()->set_parent (top_node_.get_end_node());
+        set_leftmost_or_parent_of_root();
 
         return *this;
     }
@@ -928,6 +925,14 @@ private:
         }
 
         return true;
+    }
+
+    void set_leftmost_or_parent_of_root ()
+    {
+        if (top_node_.get_root())
+            top_node_.get_root()->set_parent (top_node_.get_end_node());
+        else
+            leftmost_ = top_node_.get_end_node();
     }
 };
 
