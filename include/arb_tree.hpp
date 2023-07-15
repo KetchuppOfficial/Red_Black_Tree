@@ -527,18 +527,8 @@ private:
 
         Root_Wrapper () = default;
 
-        Root_Wrapper (const Root_Wrapper &rhs) = delete;
-        Root_Wrapper &operator= (const Root_Wrapper &rhs) = delete;
-
-        Root_Wrapper (Root_Wrapper &&rhs) noexcept (std::is_nothrow_move_constructible_v<end_node_type>)
-                     : end_node_{std::move (rhs.end_node_)} {}
-
-        Root_Wrapper &operator= (Root_Wrapper &&rhs) noexcept (std::is_nothrow_swappable_v<end_node_type>)
-        {
-            std::swap (end_node_, rhs.end_node_);
-
-            return *this;
-        }
+        Root_Wrapper (Root_Wrapper &&rhs) = default;
+        Root_Wrapper &operator= (Root_Wrapper &&rhs) = default;
 
         void set_default ()
         {
@@ -613,12 +603,19 @@ public:
     ARB_Tree (ARB_Tree &&rhs)
              : top_node_{std::move (rhs.top_node_)},
                leftmost_{std::exchange (rhs.leftmost_, rhs.top_node_.get_end_node())},
-               comp_{std::move (rhs.comp_)} {}
+               comp_{std::move (rhs.comp_)}
+    {
+        if (top_node_.get_root())
+                top_node_.get_root()->set_parent (top_node_.get_end_node());
+    }
 
     ARB_Tree &operator= (ARB_Tree &&rhs) noexcept (std::is_nothrow_swappable_v<key_compare> &&
                                                    std::is_nothrow_swappable_v<end_node_type>)
     {
         swap (rhs);
+
+        if (top_node_.get_root())
+                top_node_.get_root()->set_parent (top_node_.get_end_node());
 
         return *this;
     }
