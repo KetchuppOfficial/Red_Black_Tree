@@ -9,13 +9,13 @@ The following application have to be installed:
 
 ## How to install
 ```bash
-git clone git@github.com:KetchuppOfficial/Tree.git
-cd Tree
+git clone git@github.com:KetchuppOfficial/Red_Black_Tree.git
+cd Red_Black_Tree
 ```
 
 ## How to build
 
-### 0) Make sure you are in the root directory of the project (i.e. Tree/)
+### 0) Make sure you are in the root directory of the project (i.e. Red_Black_Tree/)
 
 ### 1) Build the project
 ```bash
