@@ -42,8 +42,7 @@ TEST (Modifiers, Insert_Range)
     yLab::ARB_Tree<int> tree;
     tree.insert (model.begin(), model.end());
 
-    EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin()));
-    EXPECT_TRUE (std::equal (model.begin(), model.end(), tree.begin()));
+    EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin(), model.end()));
 }
 
 TEST (Modifiers, Insert_By_Initializer_List)
@@ -53,8 +52,7 @@ TEST (Modifiers, Insert_By_Initializer_List)
     yLab::ARB_Tree<int> tree;
     tree.insert ({1, 6, 3, 7, 1, 8, 5, 3, 8, 35162, -46, 35});
 
-    EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin()));
-    EXPECT_TRUE (std::equal (model.begin(), model.end(), tree.begin()));
+    EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin(), model.end()));
 }
 
 TEST (Modifiers, Erase_By_Iterator)
@@ -66,8 +64,7 @@ TEST (Modifiers, Erase_By_Iterator)
     tree.erase (it);
     model.erase (15);
 
-    EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin()));
-    EXPECT_TRUE (std::equal (model.begin(), model.end(), tree.begin()));
+    EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin(), model.end()));
 }
 
 TEST (Modifiers, Erase_By_Key)
@@ -84,13 +81,11 @@ TEST (Modifiers, Erase_By_Key)
         EXPECT_EQ (is_erased, 1);
 
         model.erase (key);
-        EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin()));
-        EXPECT_TRUE (std::equal (model.begin(), model.end(), tree.begin()));
+        EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin(), model.end()));
 
         is_erased = tree.erase (-key);
         EXPECT_EQ (is_erased, 0);
-        EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin()));
-        EXPECT_TRUE (std::equal (model.begin(), model.end(), tree.begin()));
+        EXPECT_TRUE (std::equal (tree.begin(), tree.end(), model.begin(), model.end()));
     }
 
     yLab::ARB_Tree tree = {1};
