@@ -72,7 +72,7 @@ TEST (Modifiers, Erase_By_Key)
     std::vector<int> vec(1000);
     std::iota (vec.begin(), vec.end(), 1);
 
-    for (auto key = 1; key != vec.size() + 1; ++key)
+    for (auto key : vec)
     {
         yLab::ARB_Tree<int> tree{vec.begin(), vec.end()};
         std::set<int> model{vec.begin(), vec.end()};
