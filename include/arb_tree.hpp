@@ -804,9 +804,9 @@ private:
 
         while (node)
         {
-            if (comp_(key, node->key())) // less
+            if (comp_(key, node->key())) // key < node->key()
                 parent = std::exchange (node, node->get_left());
-            else if (comp_(node->key(), key)) // greater
+            else if (comp_(node->key(), key)) // key > node->key()
                 parent = std::exchange (node, node->get_right());
             else
                 break;
@@ -822,7 +822,7 @@ private:
         
         while (node)
         {
-            if (!comp_(node->key(), key))
+            if (!comp_(node->key(), key)) // key <= node->key()
                 result = std::exchange (node, node->get_left());
             else
                 node = node->get_right();
@@ -838,7 +838,7 @@ private:
 
         while (node)
         {
-            if (comp_(key, node->key()))
+            if (comp_(key, node->key())) // key < node->key()
                 result = std::exchange (node, node->get_left());
             else
                 node = node->get_right();
