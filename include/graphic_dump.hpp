@@ -34,15 +34,15 @@ void node_dump (std::ostream &os, Node_Ptr node)
         os << "color = black, style = filled, fillcolor = red, fontcolor = black";
 
     os << ", label = \"key: " << node->key()
-        << "| size: " << node->subtree_size_ << "\"];\n";
+       << "| size: " << node->subtree_size_ << "\"];\n";
 
     if (node->get_left() == nullptr)
-        os << "\tleft_nil_node_" << node << " [shape = record, "
-            << "color = red, style = filled, fillcolor = black, fontcolor = white, label = \"nil\"];\n";
+        os << "    left_nil_node_" << node << " [shape = record, color = red, "
+              "style = filled, fillcolor = black, fontcolor = white, label = \"nil\"];\n";
 
     if (node->get_right() == nullptr)
-        os << "\tright_nil_node_" << node << " [shape = record, "
-            << "color = red, style = filled, fillcolor = black, fontcolor = white, label = \"nil\"];\n";
+        os << "    right_nil_node_" << node << " [shape = record, color = red, "
+              "style = filled, fillcolor = black, fontcolor = white, label = \"nil\"];\n";
 }
 
 template<typename Node_Ptr>
@@ -82,8 +82,8 @@ void graphic_dump (std::ostream &os, End_Node_Ptr begin, End_Node_Ptr end)
           "    node [shape = record];\n\n";
 
     os << "    node_" << end
-       << " [color = black, style = filled, fillcolor = yellow, label = \"end node| "
-       << "size: " << end->subtree_size_ << "\"];\n";
+       << " [color = black, style = filled, fillcolor = yellow, label = \"end node| size: "
+       << end->subtree_size_ << "\"];\n";
 
     for (auto node = begin; node != end; node = successor (static_cast<node_ptr>(node)))
         node_dump (os, static_cast<node_ptr>(node));
