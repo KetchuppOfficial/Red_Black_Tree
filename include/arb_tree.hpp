@@ -772,8 +772,7 @@ public:
         if (empty())
             return;
 
-        detail::graphic_dump (os, static_cast<const_node_ptr>(leftmost_),
-                              top_node_.get_end_node());
+        detail::graphic_dump (os, begin().node_, end().node_);
     }
 
     #endif // DEBUG

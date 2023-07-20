@@ -10,6 +10,7 @@
 
 #include <ostream>
 #include <cassert>
+#include <type_traits>
 
 #include "nodes.hpp"
 
@@ -19,10 +20,10 @@ namespace yLab
 namespace detail
 {
 
-template<typename Node_T>
-void node_dump (std::ostream &os, const Node_T *node)
+template<typename Node_Ptr>
+void node_dump (std::ostream &os, Node_Ptr node)
 {
-    using color_type = typename Node_T::color_type;
+    using color_type = typename std::remove_pointer_t<Node_Ptr>::color_type;
 
     assert (node);
 
@@ -44,8 +45,8 @@ void node_dump (std::ostream &os, const Node_T *node)
             << "color = red, style = filled, fillcolor = black, fontcolor = white, label = \"nil\"];\n";
 }
 
-template<typename Node_T>
-void arrow_dump (std::ostream &os, const Node_T *node)
+template<typename Node_Ptr>
+void arrow_dump (std::ostream &os, Node_Ptr node)
 {
     assert (node);
     
@@ -67,29 +68,28 @@ void arrow_dump (std::ostream &os, const Node_T *node)
         << "node_" << node->get_parent() << " [color = \"dimgray\"];\n";
 }
 
-template<typename Node_T>
-void graphic_dump (std::ostream &os, const Node_T *begin, const End_Node<Node_T> *end)
+template<typename End_Node_Ptr>
+void graphic_dump (std::ostream &os, End_Node_Ptr begin, End_Node_Ptr end)
 {
-    using node_ptr = const Node_T *;
-    using end_node_ptr = const End_Node<Node_T> *;
+    using node_ptr = decltype (begin->get_left());
     
     assert (begin);
     assert (end);
 
     os << "digraph Tree\n"
           "{\n"
-          "    rankdir = TB;\n";
+          "    rankdir = TB;\n"
           "    node [shape = record];\n\n";
 
     os << "    node_" << end
        << " [color = black, style = filled, fillcolor = yellow, label = \"end node| "
        << "size: " << end->subtree_size_ << "\"];\n";
 
-    for (end_node_ptr node = begin; node != end; node = successor (static_cast<node_ptr>(node)))
+    for (auto node = begin; node != end; node = successor (static_cast<node_ptr>(node)))
         node_dump (os, static_cast<node_ptr>(node));
 
     os << std::endl;
-    for (end_node_ptr node = begin; node != end; node = successor (static_cast<node_ptr>(node)))
+    for (auto node = begin; node != end; node = successor (static_cast<node_ptr>(node)))
         arrow_dump (os, static_cast<node_ptr>(node));
 
     os << "    node_" << end << " -> node_" << end->get_left() << " [color = \"blue\"];\n}\n";
