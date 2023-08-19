@@ -6,7 +6,7 @@ TEST (Nodes, Is_Left_Child)
 {
     using node_type = yLab::ARB_Node<int>;
     using color_type = typename node_type::color_type;
-    
+
     node_type parent{1, color_type::red};
     node_type left{1, color_type::black};
     node_type right{1, color_type::black};
@@ -167,7 +167,7 @@ TEST (Nodes, Right_Rotate)
 {
     using node_type = yLab::ARB_Node<int>;
     using color_type = typename node_type::color_type;
-    
+
     node_type root{1, color_type::black};
     node_type x{2, color_type::red};
     node_type y{3, color_type::red};

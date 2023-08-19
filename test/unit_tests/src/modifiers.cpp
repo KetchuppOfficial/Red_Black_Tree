@@ -37,7 +37,7 @@ TEST (Modifiers, Insert_By_Key)
 
 TEST (Modifiers, Insert_Range)
 {
-    std::set model = {1, 6, 3, 7, 1, 8, 5, 3, 8, 35162, -46, 35};    
+    std::set model = {1, 6, 3, 7, 1, 8, 5, 3, 8, 35162, -46, 35};
 
     yLab::ARB_Tree<int> tree;
     tree.insert (model.begin(), model.end());
@@ -47,7 +47,7 @@ TEST (Modifiers, Insert_Range)
 
 TEST (Modifiers, Insert_By_Initializer_List)
 {
-    std::set model = {1, 6, 3, 7, 1, 8, 5, 3, 8, 35162, -46, 35};    
+    std::set model = {1, 6, 3, 7, 1, 8, 5, 3, 8, 35162, -46, 35};
 
     yLab::ARB_Tree<int> tree;
     tree.insert ({1, 6, 3, 7, 1, 8, 5, 3, 8, 35162, -46, 35});

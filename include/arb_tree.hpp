@@ -4,7 +4,7 @@
  * ARB_Tree is designed the following way. Its root's parent is an End_Node
  * which left child is the root. This implies that every ARB_Node in a tree
  * has a parent: another ARB_Node or the End_Node.
- * 
+ *
  * Defining DEBUG macro makes it possible to call graphic_dump() method that
  * is designed for dumping a tree by means of graphviz for debugging or just
  * for fun.
@@ -45,7 +45,7 @@ namespace detail
  * are guaranteed by the algorithm (look rb_insert_fixup)
  */
 template<typename Node_T>
-Node_T *recolor_parent_grandparent_uncle (Node_T *parent, Node_T *uncle, 
+Node_T *recolor_parent_grandparent_uncle (Node_T *parent, Node_T *uncle,
                                           const Node_T *root) noexcept
 {
     using color_type = typename Node_T::color_type;
@@ -53,7 +53,7 @@ Node_T *recolor_parent_grandparent_uncle (Node_T *parent, Node_T *uncle,
     assert (parent);
     assert (uncle);
     assert (parent->parent_unsafe());
-    
+
     parent->color_ = color_type::black;
 
     parent = parent->parent_unsafe();
@@ -72,7 +72,7 @@ Node_T *recolor_parent_grandparent (Node_T *parent) noexcept
 
     assert (parent);
     assert (parent->parent_unsafe());
-    
+
     parent->color_ = color_type::black;
 
     parent = parent->parent_unsafe();
@@ -83,11 +83,11 @@ Node_T *recolor_parent_grandparent (Node_T *parent) noexcept
 
 template <typename Node_T>
 void rb_insert_fixup (const Node_T *root, Node_T *new_node) noexcept
-{       
+{
     using color_type = typename Node_T::color_type;
-    
+
     assert (new_node);
-    
+
     // Checks if "The root is black" property is violated
     if (new_node == root)
     {
@@ -102,13 +102,13 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node) noexcept
     // Checks if "If a node is red, then both its children are black" property is violated
     while (new_node != root && parent->color_ == color_type::red)
     {
-        /* 
+        /*
          * Some notes:
          * (1). First condition is important only for iterations 2, 3, ... but not for 1
          * (2). (new_node != root) ==> (parent != end_node)
          * (3). (parent->color_ == color_type::red) ==> (parent != root)
          */
-        
+
         if (is_left_child (parent))
         {
             // (3) ==> exists (parent->parent_) != end_node
@@ -119,7 +119,7 @@ void rb_insert_fixup (const Node_T *root, Node_T *new_node) noexcept
             {
                 /* (uncle->color_ == color_type::red) ==> grandparent->color_ == color_type::black
                  * ==> grandparent may be root */
-                
+
                 new_node = recolor_parent_grandparent_uncle (parent, uncle, root);
             }
             else
@@ -167,7 +167,7 @@ Node_T *recolor_parent_sibling_and_rotate (Node_T *sibling_of_y, Rotor rotate)
     using color_type = typename Node_T::color_type;
 
     assert (sibling_of_y);
-    
+
     auto parent_of_y = sibling_of_y->parent_unsafe();
 
     sibling_of_y->color_ = color_type::black;
@@ -199,13 +199,13 @@ Node_T *recolor_parent_sibling_nephew (Node_T *sibling_of_y, Node_T *l_nephew_of
         sibling_of_y->color_ = color_type::red;
 
         l_rotate (sibling_of_y);
-        
+
         sibling_of_y = r_nephew_of_y;
     }
 
     auto parent_of_y = sibling_of_y->parent_unsafe();
     sibling_of_y->color_ = std::exchange (parent_of_y->color_, color_type::black);
-    
+
     return parent_of_y;
 }
 
@@ -215,7 +215,7 @@ bool recolor_parent_sibling (Node_T *root, Node_T *sibling_of_y) noexcept
     using color_type = typename Node_T::color_type;
 
     assert (sibling_of_y);
-    
+
     sibling_of_y->color_ = color_type::red;
 
     auto parent_of_y = sibling_of_y->parent_unsafe();
@@ -255,7 +255,7 @@ void rb_erase_fixup (Node_T *root, Node_T *sibling_of_y)
             auto l_nephew_of_y = sibling_of_y->get_left();
             auto r_nephew_of_y = sibling_of_y->get_right();
             if (is_red (l_nephew_of_y) || is_red (r_nephew_of_y))
-            { 
+            {
                 right_rotate (recolor_parent_sibling_nephew (sibling_of_y, l_nephew_of_y,
                                                              r_nephew_of_y, l_rotate));
                 break;
@@ -276,13 +276,13 @@ void rb_erase_fixup (Node_T *root, Node_T *sibling_of_y)
             auto l_nephew_of_y = sibling_of_y->get_left();
             auto r_nephew_of_y = sibling_of_y->get_right();
             if (is_red (l_nephew_of_y) || is_red (r_nephew_of_y))
-            {   
+            {
                 left_rotate (recolor_parent_sibling_nephew (sibling_of_y, r_nephew_of_y,
                                                             l_nephew_of_y, r_rotate));
                 break;
             }
         }
-    
+
         if (recolor_parent_sibling (root, sibling_of_y))
             break;
 
@@ -301,7 +301,7 @@ template<typename Node_T>
 std::pair<Node_T *, Node_T *> get_y_and_its_child (Node_T *z) noexcept
 {
     assert (z);
-    
+
     // If a node has a right child, that node's successor exists
     Node_T *y;
     if (z->get_left() && z->get_right())
@@ -321,21 +321,21 @@ auto child_of_y_substitutes_y (Node_T *&root, Node_T *y, Node_T *child_of_y) noe
 {
     assert (y);
     assert (child_of_y == y->get_left() || child_of_y == y->get_right());
-    
+
     Node_T *sibling_of_y = nullptr;
     if (is_left_child (y))
     {
-        /* 
+        /*
          * STATEMENT (*):
          * Let y == successor (z), then:
          * (1). z->left_ != nullptr
          * (2). is_left_child (y) ==> (y != z->right_) ==> (y->parent_ != z)
          * So next line doesn't change z->left_ and still isn't equal to nullptr
-         * 
+         *
          * P.s: (2) is also obviously true if y == z
          */
         y->get_parent()->set_left (child_of_y);
-        
+
         if (y != root)
         {
             // (y != root) ==> exists y->parent_ != end_node
@@ -374,7 +374,7 @@ void decrement_subtee_hights_from_y_to_z (Node_T *y, Node_T *z,
     assert (y);
 
     // y->parent_->subtree_hight_ has already been changed in child_of_y_substitutes_y()
-    
+
     if (auto yp = y->parent_unsafe(); yp != z)
     {
         for (auto ypp = yp->parent_unsafe(); ypp != z; ypp = ypp->parent_unsafe())
@@ -388,7 +388,7 @@ void y_substitutes_z (Node_T *y, Node_T *z, typename Node_T::size_type z_size) n
 {
     assert (y);
     assert (z);
-    
+
     auto zl = z->get_left();
     auto zr = z->get_right();
 
@@ -430,14 +430,14 @@ void decrement_subtree_hights_upper_z (Node_T *z, End_Node_T *end_node) noexcept
     assert (end_node);
     assert (z->get_parent() != end_node);
 
-    /* 
+    /*
      * if (y == z), then z->parent_->subtree_hight_ has already been changed
      * in child_of_y_substitutes_y()
      *
      * if (y != z), then z->parent_->subtree_hight_ has already been changed
      * in y_substitutes_z()
      */
-    
+
     auto zpp = z->parent_unsafe()->get_parent();
     while (zpp != end_node)
     {
@@ -449,13 +449,13 @@ void decrement_subtree_hights_upper_z (Node_T *z, End_Node_T *end_node) noexcept
 
 template<typename Node_T>
 void erase_impl (Node_T *root, Node_T *z)
-{    
+{
     using color_type = typename Node_T::color_type;
     using size_type = typename Node_T::size_type;
-    
+
     assert (root);
     assert (z);
-    
+
     auto [y, child_of_y] = get_y_and_its_child (z);
 
     // child_of_y_substitutes_y() may change root, so we save a pointer to end_node
@@ -472,7 +472,7 @@ void erase_impl (Node_T *root, Node_T *z)
     {
         decrement_subtee_hights_from_y_to_z (y, z, decrement);
         y_substitutes_z (y, z, z_size);
-        
+
         if (z == root)
             root = y;
     }
@@ -580,7 +580,7 @@ public:
         insert (first, last);
     }
 
-    ARB_Tree (std::initializer_list<value_type> ilist, const key_compare &comp = key_compare{}) 
+    ARB_Tree (std::initializer_list<value_type> ilist, const key_compare &comp = key_compare{})
             : comp_{comp}
     {
         insert (ilist);
@@ -664,7 +664,7 @@ public:
     std::pair<iterator, bool> insert (const key_type &key)
     {
         auto [node, parent] = find_position_to_insert (key);
-    
+
         if (node == nullptr) // No node with such key in the tree
         {
             auto new_node = insert_impl (key, parent);
@@ -746,7 +746,7 @@ public:
     {
         if (empty() || k == 0)
             return end();
-        
+
         auto node = detail::kth_smallest (top_node_.get_root(), k);
         return node ? const_iterator{node} : end();
     }
@@ -765,7 +765,7 @@ public:
     }
 
     #ifdef DEBUG
-    
+
     // I see how this violates SRP but I don't know any better implementation
     void graphic_dump (std::ostream &os = std::cout) const
     {
@@ -818,7 +818,7 @@ private:
     {
         auto node = top_node_.get_root();
         const_node_ptr result = nullptr;
-        
+
         while (node)
         {
             if (!comp_(node->key(), key)) // key <= node->key()
@@ -881,7 +881,7 @@ private:
     void insert_unique (const key_type &key)
     {
         auto [node, parent] = find_position_to_insert (key);
-    
+
         if (node == nullptr)
             insert_impl (key, parent);
     }
@@ -895,10 +895,10 @@ private:
     {
         if (top_node_.get_root() == nullptr)
             return true; // empty tree
-        
+
         if (top_node_.get_root()->get_parent() != top_node_.get_end_node())
             return false;
-        
+
         if (!detail::is_left_child (top_node_.get_root()))
             return false;
 
@@ -912,7 +912,7 @@ private:
     {
         if (size() != std::distance (begin(), end()))
             return false;
-        
+
         for (auto it = begin(), ite = end(); it != ite; ++it)
         {
             auto node = static_cast<const_node_ptr>(it.node_);

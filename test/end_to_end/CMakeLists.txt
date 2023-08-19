@@ -8,7 +8,7 @@ target_include_directories(driver
 
 target_include_directories(generator
                            PRIVATE ./include)
-                           
+
 target_include_directories(ans_generator
                            PRIVATE ./include)
 

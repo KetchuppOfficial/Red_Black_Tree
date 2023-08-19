@@ -1,6 +1,6 @@
 /*
  * This header contains implementation of graphic dump of ARB_Tree.
- * 
+ *
  * The content of a tree is dumped in dot language and then can be
  * visualised by means of Graphviz. An example can be found in images/
  */
@@ -49,7 +49,7 @@ template<typename Node_Ptr>
 void arrow_dump (std::ostream &os, Node_Ptr node)
 {
     assert (node);
-    
+
     os << "    node_" << node << " -> ";
     if (node->get_left())
         os << "node_" << node->get_left();
@@ -63,7 +63,7 @@ void arrow_dump (std::ostream &os, Node_Ptr node)
     else
         os << "right_nil_node_" << node;
     os << " [color = \"gold\"];\n";
-        
+
     os << "    node_" << node << " -> "
         << "node_" << node->get_parent() << " [color = \"dimgray\"];\n";
 }
@@ -72,7 +72,7 @@ template<typename End_Node_Ptr>
 void graphic_dump (std::ostream &os, End_Node_Ptr begin, End_Node_Ptr end)
 {
     using node_ptr = decltype (begin->get_left());
-    
+
     assert (begin);
     assert (end);
 

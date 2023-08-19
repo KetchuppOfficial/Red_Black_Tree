@@ -46,6 +46,6 @@ int main ()
 
     auto finish = std::chrono::high_resolution_clock::now();
     file << duration_cast<std::chrono::milliseconds>(finish - start).count() << std::endl;
-    
+
     return 0;
 }

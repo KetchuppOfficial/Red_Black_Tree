@@ -5,18 +5,18 @@
  * left child. ARB_Node is an ordinary node of a red-black tree. It also contains the number of
  * nodes in its subtree to make range-based queries work in O(log(n)) time. ARB_Node is inherited
  * from End_Node (CRTP is used).
- * 
+ *
  * End_Node is supposed to represent underlying node of end-iterator.
- * 
+ *
  * Parent of an ARB_Node can be got by means of get_parent() or parent_unsafe(). The first
  * function returns a pointer to the base class (to End_Node part of a node). The second one
- * performs downcast to a pointer to ARB_Node. It is so because in some cases we are certain 
+ * performs downcast to a pointer to ARB_Node. It is so because in some cases we are certain
  * that a node's parent is of type ARB_Node and in other cases we are not.
- * 
+ *
  * Functions that perform rotation (left_rotate() and right_rotate()) also recalculate sizes
  * of subtrees.
- * 
- * Successor and predecessor functions are designed the following way. Let root_ be the root 
+ *
+ * Successor and predecessor functions are designed the following way. Let root_ be the root
  * of a tree and end_node_ == root->parent_, then (successor (maximum (root_)) == end_node_).
  */
 
@@ -119,7 +119,7 @@ public:
         std::swap (parent_, rhs.parent_);
         std::swap (color_, rhs.color_);
         std::swap (key_, rhs.key_);
-        
+
         return *this;
     }
 
@@ -154,7 +154,7 @@ bool is_left_child (Node_Ptr node) noexcept
 {
     assert (node);
     assert (node->get_parent());
-    
+
     return node == node->get_parent()->get_left();
 }
 
@@ -162,7 +162,7 @@ template<typename Node_Ptr>
 Node_Ptr minimum (Node_Ptr node) noexcept
 {
     assert (node);
-    
+
     while (node->get_left())
         node = node->get_left();
 
@@ -173,7 +173,7 @@ template<typename Node_Ptr>
 Node_Ptr maximum (Node_Ptr node) noexcept
 {
     assert (node);
-    
+
     while (node->get_right())
         node = node->get_right();
 
@@ -184,13 +184,13 @@ template<typename Node_Ptr>
 auto successor (Node_Ptr node) noexcept -> decltype (node->get_parent())
 {
     assert (node);
-    
+
     if (node->get_right())
         return minimum (node->get_right());
 
     while (!is_left_child (node))
         node = node->parent_unsafe();
-    
+
     return node->get_parent();
 }
 
@@ -200,7 +200,7 @@ auto predecessor (End_Node_Ptr node) noexcept -> decltype (node->get_left())
     using node_ptr = decltype (node->get_left());
 
     assert (node);
-    
+
     if (node->get_left())
         return maximum (node->get_left());
 
@@ -223,7 +223,7 @@ template<typename Node_Ptr>
 void left_rotate (Node_Ptr x) noexcept
 {
     using node_type = std::remove_pointer_t<Node_Ptr>;
-    
+
     assert (x);
     assert (x->get_right());
 
@@ -259,7 +259,7 @@ template <typename Node_Ptr>
 void right_rotate (Node_Ptr x) noexcept
 {
     using node_type = std::remove_pointer_t<Node_Ptr>;
-    
+
     assert (x);
     assert (x->get_left());
 
@@ -287,17 +287,17 @@ template<typename Node_Ptr>
 Node_Ptr kth_smallest (Node_Ptr root, std::size_t k) noexcept
 {
     using node_type = std::remove_pointer_t<Node_Ptr>;
-    
+
     assert (root);
-    
+
     if (k > root->subtree_size_)
         return nullptr;
 
     auto left = root->get_left();
     auto left_size = node_type::size (left);
-    
+
     while (k != left_size + 1)
-    {    
+    {
         if (0 < left_size && k <= left_size)
             root = left;
         else
@@ -321,7 +321,7 @@ typename std::remove_pointer_t<End_Node_Ptr>::size_type
     using node_type = std::remove_pointer_t<node_ptr>;
 
     assert (node);
-    
+
     auto rank = node_type::size (node->get_left());
 
     while (node != root)
@@ -329,7 +329,7 @@ typename std::remove_pointer_t<End_Node_Ptr>::size_type
         auto node_ = static_cast<node_ptr>(node);
         auto np = node_->get_parent();
         auto npl = np->get_left();
-        
+
         if (!is_left_child (node_))
             rank += 1 + node_type::size (npl);
 
@@ -343,7 +343,7 @@ template<typename Node_Ptr>
 std::size_t red_black_verifier (Node_Ptr root) noexcept
 {
     using color_type = typename std::remove_pointer_t<Node_Ptr>::color_type;
-    
+
     if (root == nullptr)
         return 1;
 
@@ -362,7 +362,7 @@ std::size_t red_black_verifier (Node_Ptr root) noexcept
     }
 
     auto left_black_height = red_black_verifier (left);
-    if (left_black_height == 0 || 
+    if (left_black_height == 0 ||
         left_black_height != red_black_verifier (right))
         return 0;
 

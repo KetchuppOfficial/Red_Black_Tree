@@ -33,7 +33,7 @@ int main ()
                 auto it = tree.begin();
                 std::advance (it, key_ - 1);
                 std::cout << *it << " ";
-                
+
                 break;
             }
 
@@ -50,6 +50,6 @@ int main ()
 
     auto finish = std::chrono::high_resolution_clock::now();
     file << duration_cast<std::chrono::milliseconds>(finish - start).count() << std::endl;
-    
+
     return 0;
 }

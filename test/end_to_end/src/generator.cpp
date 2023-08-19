@@ -15,7 +15,7 @@ args cmd_line_args (int argc, char *argv[])
 {
     if (argc != 5)
         throw std::runtime_error{"Program requires exactly 4 arguments"};
-    
+
     auto n_queries = std::atoi (argv[1]);
     if (n_queries < 0)
         throw std::runtime_error{"The number of queries has to be a positive integer"};
@@ -23,7 +23,7 @@ args cmd_line_args (int argc, char *argv[])
     auto key_weight = std::atof (argv[2]);
     if (key_weight < 0)
         throw std::runtime_error{"The probability of \"insert\" query has to be a positive number"};
-    
+
     auto kths_weight = std::atof (argv[3]); // kth smallest weight
     if (kths_weight < 0)
         throw std::runtime_error{"The probability of \"kth smallest\" query has to be a positive number"};
@@ -61,7 +61,7 @@ int main (int argc, char *argv[])
                 std::cout << end_to_end::Queries::key << " " << key_ << " ";
                 keys.insert (key_);
                 break;
-            }   
+            }
 
             case 1:
             {
@@ -70,12 +70,12 @@ int main (int argc, char *argv[])
                     query_i--;
                     break;
                 }
-                    
+
                 std::uniform_int_distribution<std::size_t> k{1, keys.size()};
                 std::cout << end_to_end::Queries::kth_smallest << " " << k (gen) << " ";
                 break;
             }
-            
+
             case 2:
                 std::cout << end_to_end::Queries::n_less_than_given << " " << key (gen) << " ";
                 break;
@@ -86,6 +86,6 @@ int main (int argc, char *argv[])
     }
 
     std::cout << std::endl;
-    
+
     return 0;
 }

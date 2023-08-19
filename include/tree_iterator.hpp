@@ -15,7 +15,7 @@ namespace yLab
 template <typename Node_T>
 class tree_iterator final
 {
-    using const_node_ptr = const Node_T *; 
+    using const_node_ptr = const Node_T *;
     using const_end_node_ptr = const End_Node<Node_T> *;
 
     const_end_node_ptr node_;
@@ -39,7 +39,7 @@ public:
         node_ = detail::successor (static_cast<const_node_ptr>(node_));
         return *this;
     }
-    
+
     tree_iterator operator++ (int) noexcept
     {
         auto tmp = *this;
