@@ -327,13 +327,12 @@ typename std::remove_pointer_t<End_Node_Ptr>::size_type
     while (node != root)
     {
         auto node_ = static_cast<node_ptr>(node);
-        auto np = node_->get_parent();
-        auto npl = np->get_left();
+        auto parent = node_->get_parent();
 
         if (!is_left_child (node_))
-            rank += 1 + node_type::size (npl);
+            rank += 1 + node_type::size (parent->get_left());
 
-        node = node_->get_parent();
+        node = parent;
     }
 
     return rank;
