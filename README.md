@@ -4,7 +4,7 @@ This project is a task on course "Uses and applications of C++ language" by [K.I
 
 ## Requirements
 
-The following application have to be installed:
+The following application has to be installed:
 - CMake of version 3.15 (or higher)
 
 ## How to install
