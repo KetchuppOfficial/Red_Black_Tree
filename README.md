@@ -22,7 +22,7 @@ cd Red_Black_Tree
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build [--target <tgt>]
 ```
-**tgt** can be **driver**, **generator** or **ans_generator**. The **driver** is a program that recieves queries (insert, K-queries, N-queries) from stdin and prints the answers to them on stdout. The **generator** is a program the generates those queries randomly. The **ans_generator** a program that does the same as **driver** but uses std::set.
+**tgt** can be **driver**, **generator** or **ans_generator**. The **driver** is a program that recieves queries (insert, K-queries, N-queries) from stdin and prints the answers to them on stdout. The **generator** is a program the generates those queries randomly. The **ans_generator** is a program that does the same as **driver** but uses std::set.
 
 If --target option is omitted, all targets will be built.
 
